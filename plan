@@ -1,0 +1,42 @@
+Crossover:
+
+Randomly permute the order of the nodes in the adjacency matrices
+
+Select cutoff point
+
+Swap lower-right sections
+
+Delete invalid connections
+
+Find spanning tree
+
+Determine how many edges each should have
+
+Fill edges first according to spanning tree, then add/remove at random.
+
+
+
+How to randomly permute rows and columns?
+
+How to randomly generate a spanning tree?
+- (Randomly select one row (whose node is not yet connected) for each column and add a 1? And if 	below the diagonal line, instead insert in the appropriate location.
+
+Should an exterior really be used???
+
+Fitness function:
+
+Adjacency preference - matrix
+Adjacency limitation (maximum number of connections for rooms) - array/property
+Size preference (number of rooms?) - number
+Relative room ratios - matrix
+
+How to ensure there are not too many of certain rooms? Can't be more than one exterior, no??
+-------
+Is there any way to propagate adjacency preference further than just one step? So that you know if certain rooms are 2 apart, etc. Matrix multiplication?
+
+
+
+The individuals need:
+
+Variable size matrix
+List of ids for the columns/rows 
