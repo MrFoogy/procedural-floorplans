@@ -8,21 +8,16 @@ from deap import creator
 from deap import tools
 
 
-def init_individual(icls, meta):
-    shape = (len(meta.order), len(meta.order))
+def init_individual(icls, rooms):
+    shape = (len(rooms), len(rooms))
     ind = icls(numpy.random.randint(0, 1, shape))
-    ind.meta = meta
-    ind.meta.permute_order(ind)
+    ind.row_ids = [room.ident for room in rooms]
     return ind
 
 
 def get_fitness(individual, adj_pref):
-    score = individual.meta.get_permuted_multiplication(individual, adj_pref)
-    return score, 
-    """
     mult = numpy.multiply(individual, adj_pref)
     return sum(sum(mult)), 
-    """
     #return sum(sum(individual)), 
 
 
@@ -57,7 +52,6 @@ def get_crossover(ind1_mat, ind2_mat, rooms):
         [5 6 7 8]
     """
 
-    """
     # Need to do some special things because the individuals are 2D matrices.
     # TODO: can probably optimize???
     shape = (len(rooms), len(rooms))
@@ -79,6 +73,4 @@ def get_crossover(ind1_mat, ind2_mat, rooms):
         ind1_mat[i] = ind1[i * shape[1]:(i+1)*shape[1]]
         ind2_mat[i] = ind2[i * shape[1]:(i+1)*shape[1]]
         
-    return ind1_mat, ind2_mat
-    """
     return ind1_mat, ind2_mat

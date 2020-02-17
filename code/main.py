@@ -1,6 +1,6 @@
 import random
-
 import numpy
+import graph_drawing
 
 from deap import algorithms
 from deap import base
@@ -9,6 +9,7 @@ from deap import tools
 
 import ga
 from room import Room
+from individual_meta import IndividualMeta
 
 rooms = []
 rooms.append(Room("Exterior", 0))
@@ -28,12 +29,12 @@ adj_pref = numpy.ndarray(shape=(6,6), buffer=numpy.array([
 ))
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax, row_ids=None)
+creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax, meta=None)
 
 toolbox = base.Toolbox()
 
 toolbox.register("attr_bool", random.randint, 0, 1)
-toolbox.register("individual", ga.init_individual, creator.Individual, rooms=rooms, )
+toolbox.register("individual", ga.init_individual, creator.Individual, meta=IndividualMeta(rooms, list(range(len(rooms)))))
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     
 toolbox.register("evaluate", ga.get_fitness, adj_pref=adj_pref)
@@ -67,6 +68,7 @@ def main():
 
     print("Best: \n", individual_to_str(hof[0]))
 
+    graph_drawing.visualize(rooms, hof[0])
 
     return pop, stats, hof
 
