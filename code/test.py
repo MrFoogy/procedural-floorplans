@@ -1,6 +1,11 @@
-import numpy
+import numpy as np
+import graph_util
 
-a = numpy.ndarray((2, 2), buffer=numpy.array([10,20,30,40]))
-a.data = numpy.array([4,3,2,1])
-for i in range(len(a)):
-    print(i, a[i])
+
+data = np.ndarray(shape=(4,4), buffer=np.array([0, 0, 0, 0,
+                                                0, 0, 1, 0, 
+                                                0, 0, 0, 0,
+                                                0, 0, 0, 0]))
+
+print(graph_util.get_spanning_subtrees(data))
+print(graph_util.get_spanning_tree(data))

@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import graph_util
 from individual_meta import IndividualMeta
 
 class TestGA(unittest.TestCase):
@@ -46,6 +47,27 @@ class TestGA(unittest.TestCase):
             #print('Preferences\n', preferences)
             permuted_fitness = meta.get_permuted_multiplication(adjacencies, preferences)
             self.assertEqual(original_fitness, permuted_fitness)
+
+
+class TestGraphUtil(unittest.TestCase):
+    def test_subgraph(self):
+        # Test graph with no connections
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        subgraphs = graph_util.get_subgraphs(data)
+        self.assertTrue(len(subgraphs) == 3)
+
+        # Graph with one connection
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 0, 0, 0, 0]))
+        subgraphs = graph_util.get_subgraphs(data)
+        self.assertTrue(len(subgraphs) == 2)
+        self.assertTrue([0, 1] in subgraphs or [1, 0] in subgraphs)
+        self.assertTrue([2] in subgraphs)
+
+        # Fully connected
+        # TODO: this test relies on specific order in the subgraph creation (bad!)
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 1, 0, 0, 0, 0, 0, 0]))
+        subgraphs = graph_util.get_subgraphs(data)
+        self.assertTrue(subgraphs == [[0,1,2]])
 
 
 if __name__ == '__main__':
