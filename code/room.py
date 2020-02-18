@@ -3,8 +3,8 @@ class Room:
         self.name = name
         self.ident = ident
 
-    def get_display_name(self):
-        return self.name + '-' + str(self.ident)
+    def get_display_name(self, index):
+        return self.name + '-' + str(index)
 
     def is_exterior(self):
         return self.ident == 0

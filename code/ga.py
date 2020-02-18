@@ -9,7 +9,7 @@ from deap import tools
 
 
 def init_individual(icls, meta):
-    shape = (len(meta.order), len(meta.order))
+    shape = (len(meta.room_types), len(meta.room_types))
     ind = icls(numpy.random.randint(0, 1, shape))
     ind.meta = meta
     ind.meta.permute_order(ind)
@@ -17,7 +17,7 @@ def init_individual(icls, meta):
 
 
 def get_fitness(individual, adj_pref):
-    score = individual.meta.get_permuted_multiplication(individual, adj_pref)
+    score = individual.meta.get_roomtype_multiplication(individual, adj_pref)
     return score, 
     """
     mult = numpy.multiply(individual, adj_pref)
