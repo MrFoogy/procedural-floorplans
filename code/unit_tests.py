@@ -64,6 +64,22 @@ class TestGraphUtil(unittest.TestCase):
         data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 1, 0, 0, 0, 0, 0, 0]))
         subgraphs = graph_util.get_subgraphs(data)
         self.assertTrue(subgraphs == [[0,1,2]])
+    
+
+    def test_swap_lower_right(self):
+        mat_1 = np.ndarray(shape=(3,3), buffer=np.repeat(1,9))
+        mat_2 = np.ndarray(shape=(4,4), buffer=np.repeat(2,16))
+
+        correct_1 = np.ndarray(shape=(2,2), buffer=np.array([1,0,0,2]))
+        correct_2 = np.ndarray(shape=(5,5), buffer=np.array([2,2,2,0,0,
+                                                             2,2,2,0,0,
+                                                             2,2,2,0,0,
+                                                             0,0,0,1,1,
+                                                             0,0,0,1,1]))
+        
+        mat_1, mat_2 = graph_util.swap_lower_right(mat_1, mat_2, 1, 3)
+        self.assertTrue(np.array_equal(mat_1, correct_1))
+        self.assertTrue(np.array_equal(mat_2, correct_2))
 
 
 if __name__ == '__main__':

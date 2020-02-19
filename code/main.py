@@ -34,7 +34,7 @@ creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax, meta=Non
 toolbox = base.Toolbox()
 
 toolbox.register("attr_bool", random.randint, 0, 1)
-toolbox.register("individual", ga.init_individual, creator.Individual, meta=IndividualMeta(list(range(len(rooms))) + [5, 5, 5]))
+toolbox.register("individual", ga.init_individual, creator.Individual, meta=IndividualMeta(list(range(len(rooms)))))
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     
 toolbox.register("evaluate", ga.get_fitness, adj_pref=adj_pref)

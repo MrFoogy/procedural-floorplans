@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 def get_subgraphs(individual):
     # First find subgraphs
@@ -61,3 +62,25 @@ def get_spanning_tree(matrix):
         del trees[1]
 
     return trees[0]
+
+
+def swap_lower_right(mat_1, mat_2, cutoff_1, cutoff_2):
+    swap_mat_1 = mat_1[cutoff_1:, cutoff_1:].copy()
+    swap_mat_2 = mat_2[cutoff_2:, cutoff_2:].copy()
+
+    keep_mat_1 = mat_1[:cutoff_1, :cutoff_1].copy()
+    keep_mat_2 = mat_2[:cutoff_2:, :cutoff_2].copy()
+
+    new_size_1 = cutoff_1 + len(mat_2) - cutoff_2
+    new_size_2 = cutoff_2 + len(mat_1) - cutoff_1
+
+    new_mat_1 = np.zeros((new_size_1, new_size_1))
+    new_mat_2 = np.zeros((new_size_2, new_size_2))
+
+    new_mat_1[:cutoff_1,:cutoff_1] = keep_mat_1
+    new_mat_2[:cutoff_2,:cutoff_2] = keep_mat_2
+
+    new_mat_1[cutoff_1:, cutoff_1:] = swap_mat_2
+    new_mat_2[cutoff_2:, cutoff_2:] = swap_mat_1
+
+    return new_mat_1, new_mat_2

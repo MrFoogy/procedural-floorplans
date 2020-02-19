@@ -1,5 +1,5 @@
 import random
-
+import graph_util
 import numpy
 
 from deap import algorithms
@@ -41,7 +41,7 @@ def get_mutation(individual, indpb):
     return individual, 
 
 
-def get_crossover(ind1_mat, ind2_mat, rooms):
+def get_crossover(ind1, ind2, rooms):
     """Execute a two points crossover with copy on the input individuals. The
     copy is required because the slicing in numpy returns a view of the data,
     which leads to a self overwritting in the swap operation. It prevents
@@ -57,28 +57,15 @@ def get_crossover(ind1_mat, ind2_mat, rooms):
         [5 6 7 8]
     """
 
-    """
-    # Need to do some special things because the individuals are 2D matrices.
-    # TODO: can probably optimize???
-    shape = (len(rooms), len(rooms))
+    # Permute order of matrices
 
-    ind1 = ind1_mat.flatten()
-    ind2 = ind2_mat.flatten()
-    size = len(ind1)
-    cxpoint1 = random.randint(1, size)
-    cxpoint2 = random.randint(1, size - 1)
-    if cxpoint2 >= cxpoint1:
-        cxpoint2 += 1
-    else: # Swap the two cx points
-        cxpoint1, cxpoint2 = cxpoint2, cxpoint1
+    ind1.meta.permute_order(ind1)
+    ind2.meta.permute_order(ind2)
 
-    ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
-        = ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
+    # Select cutoff points for both matrices
+    cutoff1 = random.randint(1, len(ind1) - 1)
+    cutoff2 = random.randint(1, len(ind2) - 1)
 
-    for i in range(shape[0]):
-        ind1_mat[i] = ind1[i * shape[1]:(i+1)*shape[1]]
-        ind2_mat[i] = ind2[i * shape[1]:(i+1)*shape[1]]
-        
-    return ind1_mat, ind2_mat
-    """
-    return ind1_mat, ind2_mat
+    graph_util.swap_lower_right(ind1, ind2, cutoff1, cutoff2)
+
+    return ind1, ind2
