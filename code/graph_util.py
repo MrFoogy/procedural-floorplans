@@ -84,3 +84,35 @@ def swap_lower_right(mat_1, mat_2, cutoff_1, cutoff_2):
     new_mat_2[cutoff_2:, cutoff_2:] = swap_mat_1
 
     return new_mat_1, new_mat_2
+
+
+def set_num_connections(mat, spanning_tree, target_num_connections):
+    # Make sure the spanning tree is included in the matrix
+    for node_1 in spanning_tree:
+        for node_2 in spanning_tree[node_1]:
+            mat[min(node_1, node_2)][max(node_1, node_2)] = 1
+
+    num_connections = sum(sum(mat))
+    if num_connections < target_num_connections:
+        add_candidates = []
+        for i in range(len(mat)):
+            for j in range(len(mat)):
+                if i >= j:
+                    continue
+                if mat[i][j] == 0:
+                    add_candidates.append((i, j))
+        random.shuffle(add_candidates)
+        for pair in add_candidates[:target_num_connections - num_connections]:
+            mat[pair[0]][pair[1]] = 1
+
+    elif num_connections > target_num_connections:
+        remove_candidates = []
+        for i in range(len(mat)):
+            for j in range(len(mat)):
+                if i >= j:
+                    continue
+                if mat[i][j] == 1 and (j not in spanning_tree[i]) and (i not in spanning_tree[j]):
+                    remove_candidates.append((i, j))
+        random.shuffle(remove_candidates)
+        for pair in remove_candidates[:num_connections - target_num_connections]:
+            mat[pair[0]][pair[1]] = 0

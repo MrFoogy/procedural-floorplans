@@ -1,4 +1,5 @@
 import unittest
+import random
 import numpy as np
 import graph_util
 from individual_meta import IndividualMeta
@@ -80,6 +81,26 @@ class TestGraphUtil(unittest.TestCase):
         mat_1, mat_2 = graph_util.swap_lower_right(mat_1, mat_2, 1, 3)
         self.assertTrue(np.array_equal(mat_1, correct_1))
         self.assertTrue(np.array_equal(mat_2, correct_2))
+
+
+    def test_set_num_connections(self):
+        for i in range(50):
+            mat = np.random.randint(0, 2, (5, 5))
+            for i in range(len(mat)):
+                for j in range(len(mat[i])):
+                    if i >= j:
+                        mat[i][j] = 0
+            spanning_tree = graph_util.get_spanning_tree(mat)
+            min_length = len(mat) - 1
+            max_length = (len(mat) - 1) * (len(mat)) / 2
+
+            # Determine final lengths
+            length = random.randint(min_length, max_length)
+            graph_util.set_num_connections(mat, spanning_tree, length)
+            self.assertEqual(sum(sum(mat)), length)
+            for node_1 in spanning_tree:
+                for node_2 in spanning_tree[node_1]:
+                    self.assertEqual(mat[min(node_1, node_2)][max(node_1, node_2)], 1)
 
 
 if __name__ == '__main__':

@@ -41,7 +41,7 @@ def get_mutation(individual, indpb):
     return individual, 
 
 
-def get_crossover(ind1, ind2, rooms):
+def get_crossover(ind_1, ind_2, rooms):
     """Execute a two points crossover with copy on the input individuals. The
     copy is required because the slicing in numpy returns a view of the data,
     which leads to a self overwritting in the swap operation. It prevents
@@ -58,14 +58,30 @@ def get_crossover(ind1, ind2, rooms):
     """
 
     # Permute order of matrices
-
-    ind1.meta.permute_order(ind1)
-    ind2.meta.permute_order(ind2)
+    ind_1.meta.permute_order(ind_1)
+    ind_2.meta.permute_order(ind_2)
 
     # Select cutoff points for both matrices
-    cutoff1 = random.randint(1, len(ind1) - 1)
-    cutoff2 = random.randint(1, len(ind2) - 1)
+    cutoff_1 = random.randint(1, len(ind_1) - 1)
+    cutoff_2 = random.randint(1, len(ind_2) - 1)
 
-    graph_util.swap_lower_right(ind1, ind2, cutoff1, cutoff2)
+    # Swap lower rights 
+    ind_1, ind_2 = graph_util.swap_lower_right(ind_1, ind_2, cutoff_1, cutoff_2)
 
-    return ind1, ind2
+    # Find spanning trees
+    spanning_tree_1 = graph_util.get_spanning_tree(ind_1)
+    min_length_1 = len(ind_1) - 1
+    max_length_1 = (len(ind_1) - 1) * (len(ind_1)) / 2
+
+    spanning_tree_2 = graph_util.get_spanning_tree(ind_2)
+    min_length_2 = len(ind_2) - 1
+    max_length_2 = (len(ind_2) - 1) * (len(ind_2)) / 2
+
+    # Determine final lengths
+    final_length_1 = random.randint(min_length_1, max_length_1)
+    final_length_2 = random.randint(min_length_2, max_length_2)
+
+    graph_util.set_num_connections(ind_1, spanning_tree_1, final_length_1)
+    graph_util.set_num_connections(ind_2, spanning_tree_2, final_length_2)
+
+    return ind_1, ind_2
