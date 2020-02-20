@@ -2,19 +2,19 @@ import unittest
 import random
 import numpy as np
 import graph_util
-from individual_meta import IndividualMeta
+from individual import Individual
 
 class TestGA(unittest.TestCase):
     def test_permutation(self):
         data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 1, 0, 0, 0, 0, 0, 0]))
         correct_permute_data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 1, 0, 0, 0]))
-        meta = IndividualMeta([0, 1, 2])
+        individual = Individual(data, [0, 1, 2])
 
         new_order = [2, 0, 1]
-        meta.permute_order(data, new_order)
+        individual.permute_order(new_order)
 
-        self.assertTrue(np.array_equal(data, correct_permute_data))
-        self.assertEqual(meta.room_types, new_order)
+        self.assertTrue(np.array_equal(individual.adj_mat, correct_permute_data))
+        self.assertEqual(individual.room_types, new_order)
 
     def test_fitness_permutation(self):
         rooms = 6
@@ -29,20 +29,20 @@ class TestGA(unittest.TestCase):
                 preferences[i][j] = preferences[i][j] if i < j else 0
     
 
-        meta = IndividualMeta(list(range(rooms)))
-        original_fitness = meta.get_roomtype_multiplication(adjacencies, preferences)
+        individual = Individual(adjacencies, list(range(rooms)))
+        original_fitness = individual.get_roomtype_multiplication(preferences)
         for i in range(5):
             """
             print('Original adj\n', adjacencies)
             print('Original order\n', meta.room_types)
             """
-            meta.permute_order(adjacencies)
+            individual.permute_order()
             """
             print('Permuted adj\n', adjacencies)
             print('Permuted order\n', meta.room_types)
             print('Preferences\n', preferences)
             """
-            permuted_fitness = meta.get_roomtype_multiplication(adjacencies, preferences)
+            permuted_fitness = individual.get_roomtype_multiplication(preferences)
             self.assertEqual(original_fitness, permuted_fitness)
 
 

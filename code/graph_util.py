@@ -102,7 +102,7 @@ def set_num_connections(mat, spanning_tree, target_num_connections):
                 if mat[i][j] == 0:
                     add_candidates.append((i, j))
         random.shuffle(add_candidates)
-        for pair in add_candidates[:target_num_connections - num_connections]:
+        for pair in add_candidates[:int(target_num_connections - num_connections)]:
             mat[pair[0]][pair[1]] = 1
 
     elif num_connections > target_num_connections:
@@ -114,5 +114,5 @@ def set_num_connections(mat, spanning_tree, target_num_connections):
                 if mat[i][j] == 1 and (j not in spanning_tree[i]) and (i not in spanning_tree[j]):
                     remove_candidates.append((i, j))
         random.shuffle(remove_candidates)
-        for pair in remove_candidates[:num_connections - target_num_connections]:
+        for pair in remove_candidates[:int(num_connections - target_num_connections)]:
             mat[pair[0]][pair[1]] = 0

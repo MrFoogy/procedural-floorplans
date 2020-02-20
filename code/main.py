@@ -9,7 +9,7 @@ from deap import tools
 
 import ga
 from room import Room
-from individual_meta import IndividualMeta
+from individual import Individual
 
 rooms = []
 rooms.append(Room("Exterior", 0))
@@ -29,12 +29,12 @@ adj_pref = numpy.ndarray(shape=(6,6), buffer=numpy.array([
 ))
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax, meta=None)
+creator.create("Individual", Individual, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
 toolbox.register("attr_bool", random.randint, 0, 1)
-toolbox.register("individual", ga.init_individual, creator.Individual, meta=IndividualMeta(list(range(len(rooms)))))
+toolbox.register("individual", ga.init_individual, creator.Individual, room_types=list(range(len(rooms))))
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     
 toolbox.register("evaluate", ga.get_fitness, adj_pref=adj_pref)
