@@ -15,8 +15,11 @@ def init_individual(icls, room_types):
     return ind
 
 
-def get_fitness(individual, adj_pref):
-    score = individual.get_roomtype_multiplication(adj_pref)
+def get_fitness(individual, max_valences, max_rooms, rooms, adj_pref, pref_rooms):
+    num_rooms_penalty = abs(len(individual.room_types) - pref_rooms)
+    valence_penalty = individual.get_valence_violation(max_valences)
+    num_room_types_penalty = individual.get_num_room_types_violation(max_rooms, rooms)
+    score = individual.get_roomtype_multiplication(adj_pref) / 2 ** (num_rooms_penalty + valence_penalty + num_room_types_penalty)
     return score, 
     """
     mult = numpy.multiply(individual, adj_pref)

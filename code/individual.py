@@ -37,6 +37,21 @@ class Individual:
                 total_sum += self.adj_mat[i][j] * room_type_mat[min(room_type_1, room_type_2)][max(room_type_1, room_type_2)]
         return total_sum
 
+    def get_valence_violation(self, max_valences):
+        valences = {i: 0 for i in range(len(max_valences))}
+        for i in range(len(self.adj_mat)):
+            for j in range(len(self.adj_mat[i])):
+                if self.adj_mat[i][j]:
+                    valences[self.room_types[i]] += 1
+                    valences[self.room_types[j]] += 1
+        
+        return sum(max(valences[i] - max_valences[i], 0) for i in range(len(max_valences)))
+
+    def get_num_room_types_violation(self, max_num_room_types, rooms):
+        num_room_types = {i: 0 for i in range(len(rooms))}
+        for room_type in self.room_types:
+            num_room_types[room_type] += 1
+        return sum(max(num_room_types[i] - max_num_room_types[i], 0) for i in range(len(rooms)))
 
     """
     def get_adj_value(self, permuted_self.adj_mat, room_id_1, room_id_2):

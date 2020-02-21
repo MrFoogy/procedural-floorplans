@@ -12,14 +12,14 @@ from room import Room
 from individual import Individual
 
 rooms = []
-rooms.append(Room("Exterior", 0))
-rooms.append(Room("Entrance", 1))
-rooms.append(Room("Corridor", 2))
-rooms.append(Room("Kitchen", 3))
-rooms.append(Room("Bedroom", 4))
-rooms.append(Room("Toilet", 5))
+rooms.append(Room("Exterior", 0, 10, 1))
+rooms.append(Room("Entrance", 1, 2, 2))
+rooms.append(Room("Corridor", 2, 4, 10))
+rooms.append(Room("Kitchen", 3, 2, 2))
+rooms.append(Room("Bedroom", 4, 2, 10))
+rooms.append(Room("Toilet", 5, 1, 10))
 adj_pref = numpy.ndarray(shape=(6,6), buffer=numpy.array([
-     0,  3, -1.0,  1,  1,  1,
+     0,  3, -1.0,  -1.0,  -1.0,  -1.0,
      0,  0,  2, -2.0, -3.0, -3.0,
      0,  0,  0,  2,  2,  1,
      0,  0,  0,  0, -2.0, -2.0, 
@@ -37,7 +37,9 @@ toolbox.register("attr_bool", random.randint, 0, 1)
 toolbox.register("individual", ga.init_individual, creator.Individual, room_types=list(range(len(rooms))))
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     
-toolbox.register("evaluate", ga.get_fitness, adj_pref=adj_pref)
+toolbox.register("evaluate", ga.get_fitness, adj_pref=adj_pref, pref_rooms=8, rooms=rooms,
+                 max_valences = [room.max_valence for room in rooms],
+                 max_rooms = [room.max_num for room in rooms])
 toolbox.register("mate", ga.get_crossover, rooms=rooms)
 toolbox.register("mutate", ga.get_mutation, indpb=0.05)
 toolbox.register("select", tools.selTournament, tournsize=3)
@@ -49,7 +51,7 @@ def individual_to_str(ind):
 
 def main():
     
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=500)
     
     # Numpy equality function (operators.eq) between two arrays returns the
     # equality element wise, which raises an exception in the if similar()
