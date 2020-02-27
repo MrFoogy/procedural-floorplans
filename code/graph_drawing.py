@@ -29,6 +29,7 @@ def visualize(rooms, ind):
                 else:
                     add_edge(graph, room_1, i, room_2, j)
 
-    print(graph.nodes.data())
+    print(ind.adj_mat)
+    print(ind.room_types)
     nx.draw(graph, with_labels=True, font_weight='bold', node_color=[node[1]['color'] for node in graph.nodes.data()])
     plt.show()

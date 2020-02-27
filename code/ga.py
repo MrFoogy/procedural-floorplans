@@ -34,12 +34,6 @@ def get_mutation(individual, indpb):
         for j in range(len(individual.adj_mat[i])):
             # Use XOR operator to flip the bit if the conditions are met
             individual.adj_mat[i][j] = int(individual.adj_mat[i][j]) ^ (i < j and numpy.random.uniform() < indpb)
-    
-    """
-        individual[i], = tools.mutFlipBit(individual[i], indpb)
-        for j in range(len(individual[i])):
-            individual[i][j] = (i < j and individual[i][j])
-    """
     return individual, 
 
 
@@ -59,6 +53,7 @@ def get_crossover(ind_1, ind_2, rooms):
         [5 6 7 8]
     """
 
+    """
     # Permute order of matrices
     ind_1.permute_order()
     ind_2.permute_order()
@@ -78,10 +73,18 @@ def get_crossover(ind_1, ind_2, rooms):
 
     # Find spanning trees
     spanning_tree_1 = graph_util.get_spanning_tree(ind_1.adj_mat)
+
+    length = sum(len(spanning_tree_1[node_1]) for node_1 in spanning_tree_1)
+    assert length == len(ind_1.adj_mat) - 2
+
     min_length_1 = len(ind_1.adj_mat) - 1
     max_length_1 = (len(ind_1.adj_mat) - 1) * (len(ind_1.adj_mat)) / 2
 
     spanning_tree_2 = graph_util.get_spanning_tree(ind_2.adj_mat)
+
+    length = sum(len(spanning_tree_2[node_1]) for node_1 in spanning_tree_2)
+    assert length == len(ind_2.adj_mat) - 2
+
     min_length_2 = len(ind_2.adj_mat) - 1
     max_length_2 = (len(ind_2.adj_mat) - 1) * (len(ind_2.adj_mat)) / 2
 
@@ -91,5 +94,6 @@ def get_crossover(ind_1, ind_2, rooms):
 
     graph_util.set_num_connections(ind_1.adj_mat, spanning_tree_1, final_length_1)
     graph_util.set_num_connections(ind_2.adj_mat, spanning_tree_2, final_length_2)
+    """
 
     return ind_1, ind_2

@@ -6,15 +6,21 @@ from individual import Individual
 
 class TestGA(unittest.TestCase):
     def test_permutation(self):
-        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 1, 0, 0, 0, 0, 0, 0]))
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 1, 0, 0, 1, 0, 0, 0]))
         correct_permute_data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 1, 0, 0, 0]))
         individual = Individual(data, [0, 1, 2])
 
-        new_order = [2, 0, 1]
+        new_order = [0, 2, 1]
         individual.permute_order(new_order)
 
         self.assertTrue(np.array_equal(individual.adj_mat, correct_permute_data))
         self.assertEqual(individual.room_types, new_order)
+
+        for i in range(10):
+            mat = np.random.randint(0, 2, (5, 5))
+            individual = Individual(mat, [0, 1, 2, 3, 4])
+            individual.permute_order()
+            self.assertEqual(individual.room_types[0], 0)
 
     def test_fitness_permutation(self):
         rooms = 6
@@ -101,7 +107,17 @@ class TestGraphUtil(unittest.TestCase):
             for node_1 in spanning_tree:
                 for node_2 in spanning_tree[node_1]:
                     self.assertEqual(mat[min(node_1, node_2)][max(node_1, node_2)], 1)
-
+    
+    def test_spanning_tree(self):
+        for i in range(50):
+            mat = np.random.randint(0, 2, (5, 5))
+            for i in range(len(mat)):
+                for j in range(len(mat[i])):
+                    if i >= j:
+                        mat[i][j] = 0
+            spanning_tree = graph_util.get_spanning_tree(mat)
+            length = sum(len(spanning_tree[node_1]) for node_1 in spanning_tree)
+            self.assertEqual(length, len(mat) - 2)
 
 if __name__ == '__main__':
     unittest.main()

@@ -12,17 +12,26 @@ from room import Room
 from individual import Individual
 
 rooms = []
-rooms.append(Room("Exterior", 0, 10, 1))
-rooms.append(Room("Entrance", 1, 2, 2))
-rooms.append(Room("Corridor", 2, 4, 10))
-rooms.append(Room("Kitchen", 3, 2, 2))
-rooms.append(Room("Bedroom", 4, 2, 10))
-rooms.append(Room("Toilet", 5, 1, 10))
+rooms.append(Room("Exterior", 0, (1, 4), 10))
+rooms.append(Room("Entrance", 1, (2, 2), 2))
+rooms.append(Room("Corridor", 2, (2, 4), 10))
+rooms.append(Room("Kitchen", 3, (1, 2), 2))
+rooms.append(Room("Bedroom", 4, (1, 2), 10))
+rooms.append(Room("Toilet", 5, (1, 1), 10))
 adj_pref = numpy.ndarray(shape=(6,6), buffer=numpy.array([
      0,  3, -1.0,  -1.0,  -1.0,  -1.0,
      0,  0,  2, -2.0, -3.0, -3.0,
      0,  0,  0,  2,  2,  1,
      0,  0,  0,  0, -2.0, -2.0, 
+     0,  0,  0,  0,  0,  1,
+     0,  0,  0,  0,  0,  0
+]
+))
+rel_ratios = numpy.ndarray(shape=(6,6), buffer=numpy.array([
+     0,  1,  1,  1,  1,  1,
+     0,  0,  1,  1,  1,  1,
+     0,  0,  0,  1,  1,  1,
+     0,  0,  0,  0,  1,  1, 
      0,  0,  0,  0,  0,  1,
      0,  0,  0,  0,  0,  0
 ]

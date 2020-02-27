@@ -24,11 +24,12 @@ def get_subgraphs(individual):
 
 def get_spanning_subtrees(matrix):
     # Basically a breadth-first search from every node to find all individual subtrees
+    # 0th room is exterior and will be excluded
     visited = set()
     connected = set()
     subtrees = []
-    start_node = 0
-    for start_node in range(len(matrix)):
+    start_node = 1
+    for start_node in range(len(matrix))[1:]:
         if start_node in visited:
             continue
         frontier = [start_node]
@@ -40,7 +41,7 @@ def get_spanning_subtrees(matrix):
             if current in visited:
                 continue
             visited.add(current)
-            for candidate in range(len(matrix)):
+            for candidate in range(len(matrix))[1:]:
                 if (matrix[current][candidate] > 0 or matrix[candidate][current] > 0) and candidate not in connected:
                     frontier.append(candidate)
                     connected.add(candidate)
@@ -111,7 +112,7 @@ def set_num_connections(mat, spanning_tree, target_num_connections):
             for j in range(len(mat)):
                 if i >= j:
                     continue
-                if mat[i][j] == 1 and (j not in spanning_tree[i]) and (i not in spanning_tree[j]):
+                if mat[i][j] == 1 and ((j == 0 or i == 0) or (j not in spanning_tree[i]) and (i not in spanning_tree[j])):
                     remove_candidates.append((i, j))
         random.shuffle(remove_candidates)
         for pair in remove_candidates[:int(num_connections - target_num_connections)]:

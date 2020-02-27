@@ -8,8 +8,9 @@ class Individual:
     def permute_order(self, new_order=None):
         old_adj_mat = self.adj_mat.copy()
 
+        # First row/col is exterior, and should not be permuted
         if not new_order:
-            new_order = list(np.random.permutation(list(range(len(self.room_types)))))
+            new_order = [0] + list(np.random.permutation(list(range(len(self.room_types)))[1:]))
 
         for i in range(len(self.adj_mat)):
             for j in range(len(self.adj_mat[i])):
@@ -37,15 +38,15 @@ class Individual:
                 total_sum += self.adj_mat[i][j] * room_type_mat[min(room_type_1, room_type_2)][max(room_type_1, room_type_2)]
         return total_sum
 
-    def get_valence_violation(self, max_valences):
-        valences = {i: 0 for i in range(len(max_valences))}
+    def get_valence_violation(self, valence_lims):
+        valences = {i: 0 for i in range(len(valence_lims))}
         for i in range(len(self.adj_mat)):
             for j in range(len(self.adj_mat[i])):
                 if self.adj_mat[i][j]:
                     valences[self.room_types[i]] += 1
                     valences[self.room_types[j]] += 1
         
-        return sum(max(valences[i] - max_valences[i], 0) for i in range(len(max_valences)))
+        return sum(max(valences[i] - valence_lims[i][1], valence_lims[i][0] - valences[i], 0) for i in range(len(valence_lims)))
 
     def get_num_room_types_violation(self, max_num_room_types, rooms):
         num_room_types = {i: 0 for i in range(len(rooms))}
