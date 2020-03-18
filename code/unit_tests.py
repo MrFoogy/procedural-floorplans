@@ -2,6 +2,7 @@ import unittest
 import random
 import numpy as np
 import graph_util
+import mutation
 from individual import Individual
 
 class TestGA(unittest.TestCase):
@@ -118,6 +119,17 @@ class TestGraphUtil(unittest.TestCase):
             spanning_tree = graph_util.get_spanning_tree(mat)
             length = sum(len(spanning_tree[node_1]) for node_1 in spanning_tree)
             self.assertEqual(length, len(mat) - 2)
+
+
+class TestMutation(unittest.TestCase):
+    def test_number_of_node_mutation(self):
+        data = np.zeros((3,3))
+        ind = Individual(data, [0, 1, 2])
+        mutation.number_of_node_mutation(ind, True)
+        self.assertEqual(len(ind.adj_mat), 4)
+        mutation.number_of_node_mutation(ind, False)
+        mutation.number_of_node_mutation(ind, False)
+        self.assertEqual(len(ind.adj_mat), 2)
 
 if __name__ == '__main__':
     unittest.main()
