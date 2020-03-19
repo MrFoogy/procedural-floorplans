@@ -61,3 +61,6 @@ class Individual:
         index_2 = self.order.index(room_id_2)
         return permuted_self.adj_mat[min(index_1, index_2)][max(index_1, index_2)]
     """
+
+    def get_sum(self):
+        return int(round(sum(sum(self.adj_mat))))

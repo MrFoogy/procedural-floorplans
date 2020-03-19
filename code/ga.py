@@ -8,18 +8,19 @@ from deap import creator
 from deap import tools
 
 
-def init_individual(icls, room_types):
+def init_individual(icls, config):
+    room_types=list(range(len(config.rooms)))
     shape = (len(room_types), len(room_types))
     ind = icls(numpy.random.randint(0, 1, shape), room_types)
     ind.permute_order()
     return ind
 
 
-def get_fitness(individual, max_valences, max_rooms, rooms, adj_pref, pref_rooms):
+def get_fitness(individual, max_valences, max_rooms, config, pref_rooms):
     num_rooms_penalty = abs(len(individual.room_types) - pref_rooms)
     valence_penalty = individual.get_valence_violation(max_valences)
-    num_room_types_penalty = individual.get_num_room_types_violation(max_rooms, rooms)
-    score = individual.get_roomtype_multiplication(adj_pref) / 2 ** (num_rooms_penalty + valence_penalty + num_room_types_penalty)
+    num_room_types_penalty = individual.get_num_room_types_violation(max_rooms, config.rooms)
+    score = individual.get_roomtype_multiplication(config.adj_pref) / 2 ** (num_rooms_penalty + valence_penalty + num_room_types_penalty)
     return score, 
     """
     mult = numpy.multiply(individual, adj_pref)
@@ -37,7 +38,7 @@ def get_mutation(individual, indpb):
     return individual, 
 
 
-def get_crossover(ind_1, ind_2, rooms):
+def get_crossover(ind_1, ind_2):
     """Execute a two points crossover with copy on the input individuals. The
     copy is required because the slicing in numpy returns a view of the data,
     which leads to a self overwritting in the swap operation. It prevents
@@ -53,7 +54,6 @@ def get_crossover(ind_1, ind_2, rooms):
         [5 6 7 8]
     """
 
-    """
     # Permute order of matrices
     ind_1.permute_order()
     ind_2.permute_order()
@@ -94,6 +94,5 @@ def get_crossover(ind_1, ind_2, rooms):
 
     graph_util.set_num_connections(ind_1.adj_mat, spanning_tree_1, final_length_1)
     graph_util.set_num_connections(ind_2.adj_mat, spanning_tree_2, final_length_2)
-    """
 
     return ind_1, ind_2

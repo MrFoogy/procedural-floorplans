@@ -10,6 +10,7 @@ from deap import tools
 import ga
 from room import Room
 from individual import Individual
+from building_config import BuildingConfig
 
 rooms = []
 rooms.append(Room("Exterior", 0, (1, 4), 10))
@@ -37,19 +38,21 @@ rel_ratios = numpy.ndarray(shape=(6,6), buffer=numpy.array([
 ]
 ))
 
+config = BuildingConfig(rooms, adj_pref, rel_ratios)
+
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", Individual, fitness=creator.FitnessMax)
 
 toolbox = base.Toolbox()
 
 toolbox.register("attr_bool", random.randint, 0, 1)
-toolbox.register("individual", ga.init_individual, creator.Individual, room_types=list(range(len(rooms))))
+toolbox.register("individual", ga.init_individual, creator.Individual, config)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     
-toolbox.register("evaluate", ga.get_fitness, adj_pref=adj_pref, pref_rooms=8, rooms=rooms,
-                 max_valences = [room.max_valence for room in rooms],
-                 max_rooms = [room.max_num for room in rooms])
-toolbox.register("mate", ga.get_crossover, rooms=rooms)
+toolbox.register("evaluate", ga.get_fitness, pref_rooms=8, config=config,
+                 max_valences = [room.max_valence for room in config.rooms],
+                 max_rooms = [room.max_num for room in config.rooms])
+toolbox.register("mate", ga.get_crossover)
 toolbox.register("mutate", ga.get_mutation, indpb=0.05)
 toolbox.register("select", tools.selTournament, tournsize=3)
 

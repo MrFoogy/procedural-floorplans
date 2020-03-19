@@ -4,6 +4,8 @@ import numpy as np
 import graph_util
 import mutation
 from individual import Individual
+from room import Room
+from building_config import BuildingConfig
 
 class TestGA(unittest.TestCase):
     def test_permutation(self):
@@ -123,13 +125,31 @@ class TestGraphUtil(unittest.TestCase):
 
 class TestMutation(unittest.TestCase):
     def test_number_of_node_mutation(self):
+        config = BuildingConfig([Room("A", 0, (2, 4), 1), Room("B", 0, (2, 4), 1), Room("C", 0, (2, 4), 1)], None, None)
         data = np.zeros((3,3))
         ind = Individual(data, [0, 1, 2])
-        mutation.number_of_node_mutation(ind, True)
+        mutation.number_of_node_mutation(ind, config, True)
         self.assertEqual(len(ind.adj_mat), 4)
-        mutation.number_of_node_mutation(ind, False)
-        mutation.number_of_node_mutation(ind, False)
+        self.assertEqual(len(ind.adj_mat), len(ind.room_types))
+        mutation.number_of_node_mutation(ind, config, False)
+        mutation.number_of_node_mutation(ind, config, False)
         self.assertEqual(len(ind.adj_mat), 2)
+        self.assertEqual(len(ind.adj_mat), len(ind.room_types))
+    
+    def test_number_of_edge_mutation(self):
+        # For some reason it doesn't work unless the 1:s are floats
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 1.0, 0, 0, 1.0, 0, 0, 0]))
+        individual = Individual(data, [0, 1, 2])
+        mutation.number_of_edge_mutation(individual, True)
+        self.assertEqual(individual.get_sum(), 3)
+        mutation.number_of_edge_mutation(individual, False)
+        mutation.number_of_edge_mutation(individual, False)
+        self.assertEqual(individual.get_sum(), 1)
+
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1.0, 1.0, 0, 0, 0, 0, 0, 0]))
+        individual = Individual(data, [0, 1, 2])
+        mutation.number_of_edge_mutation(individual, True)
+        self.assertEqual(individual.get_sum(), 3)
 
 if __name__ == '__main__':
     unittest.main()
