@@ -56,10 +56,15 @@ def number_of_edge_mutation(individual, is_add = None):
 
 
 def node_label_mutation(individual, config):
-    # blabla
     swap_position = random.randint(1, len(individual.room_types) - 1)
+    swap_room_index = random.choice([i for i in range(1, len(config.rooms)) if i != individual.room_types[swap_position]])
+    individual.room_types[swap_position] = swap_room_index
 
 
 def swap_node_mutation(individual):
+    swap_positions = random.sample(range(1, len(individual.room_types)), 2)
+    temp = individual.room_types[swap_positions[0]]
+    individual.room_types[swap_positions[0]] = individual.room_types[swap_positions[1]]
+    individual.room_types[swap_positions[1]] = temp
 
 

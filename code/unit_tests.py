@@ -151,5 +151,20 @@ class TestMutation(unittest.TestCase):
         mutation.number_of_edge_mutation(individual, True)
         self.assertEqual(individual.get_sum(), 3)
 
+    def test_node_label_mutation(self):
+        config = BuildingConfig([Room("A", 0, (2, 4), 1), Room("B", 0, (2, 4), 1), Room("C", 0, (2, 4), 1)], None, None)
+        data = np.zeros((3,3))
+        ind = Individual(data, [0, 1, 2])
+        for i in range(10):
+            mutation.node_label_mutation(ind, config)
+            self.assertTrue(ind.room_types[1] in [1,2] and ind.room_types[2] in [1,2])
+
+    def test_swap_node_mutation(self):
+        data = np.zeros((3,3))
+        ind = Individual(data, [0, 1, 2])
+        for i in range(10):
+            mutation.swap_node_mutation(ind)
+            self.assertTrue(ind.room_types == [0,1,2] or ind.room_types == [0,2,1])
+
 if __name__ == '__main__':
     unittest.main()
