@@ -151,6 +151,20 @@ class TestMutation(unittest.TestCase):
         mutation.number_of_edge_mutation(individual, True)
         self.assertEqual(individual.get_sum(), 3)
 
+        # No connections
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 0.0, 0, 0, 0.0, 0, 0, 0]))
+        individual = Individual(data, [0, 1, 2])
+        mutation.number_of_edge_mutation(individual, True)
+        self.assertEqual(individual.get_sum(), 1)
+        mutation.number_of_edge_mutation(individual, False)
+        self.assertEqual(individual.get_sum(), 0)
+
+        # Full connections
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1.0, 1.0, 0, 0, 1.0, 0, 0, 0]))
+        individual = Individual(data, [0, 1, 2])
+        mutation.number_of_edge_mutation(individual, False)
+        self.assertEqual(individual.get_sum(), 2)
+
     def test_node_label_mutation(self):
         config = BuildingConfig([Room("A", 0, (2, 4), 1), Room("B", 0, (2, 4), 1), Room("C", 0, (2, 4), 1)], None, None)
         data = np.zeros((3,3))

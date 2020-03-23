@@ -21,11 +21,11 @@ rooms.append(Room("Bedroom", 4, (1, 2), 10))
 rooms.append(Room("Toilet", 5, (1, 1), 10))
 adj_pref = numpy.ndarray(shape=(6,6), buffer=numpy.array([
      0,  3, -1.0,  -1.0,  -1.0,  -1.0,
-     0,  0,  2, -2.0, -3.0, -3.0,
+     0,  -2.0,  2, -2.0, -3.0, -3.0,
      0,  0,  0,  2,  2,  1,
-     0,  0,  0,  0, -2.0, -2.0, 
-     0,  0,  0,  0,  0,  1,
-     0,  0,  0,  0,  0,  0
+     0,  0,  0,  -2.0, -2.0, -2.0, 
+     0,  0,  0,  0,  -1.0,  1,
+     0,  0,  0,  0,  0,  -2.0
 ]
 ))
 rel_ratios = numpy.ndarray(shape=(6,6), buffer=numpy.array([
@@ -53,7 +53,7 @@ toolbox.register("evaluate", ga.get_fitness, pref_rooms=8, config=config,
                  max_valences = [room.max_valence for room in config.rooms],
                  max_rooms = [room.max_num for room in config.rooms])
 toolbox.register("mate", ga.get_crossover)
-toolbox.register("mutate", ga.get_mutation, indpb=0.05)
+toolbox.register("mutate", ga.get_mutation, indpb=0.8, config=config)
 toolbox.register("select", tools.selTournament, tournsize=3)
 
 

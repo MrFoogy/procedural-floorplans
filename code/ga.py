@@ -1,6 +1,7 @@
 import random
 import graph_util
 import numpy
+import mutation
 
 from deap import algorithms
 from deap import base
@@ -29,12 +30,27 @@ def get_fitness(individual, max_valences, max_rooms, config, pref_rooms):
     #return sum(sum(individual)), 
 
 
-def get_mutation(individual, indpb):
+def simple_flip_bit_mutation(individual, indpb):
     # Since individual is a 2D matrix, iterate through rows and apply the mutFlipBit function
     for i in range(len(individual.adj_mat)):
         for j in range(len(individual.adj_mat[i])):
             # Use XOR operator to flip the bit if the conditions are met
             individual.adj_mat[i][j] = int(individual.adj_mat[i][j]) ^ (i < j and numpy.random.uniform() < indpb)
+
+
+def get_mutation(individual, config, indpb):
+    """
+    simple_flip_bit_mutation(individual, indpb)
+    """
+    mutation_type = random.randint(0,3)
+    if mutation_type == 0:
+        mutation.number_of_node_mutation(individual, config)
+    if mutation_type == 1:
+        mutation.number_of_edge_mutation(individual)
+    if mutation_type == 2:
+        mutation.node_label_mutation(individual, config)
+    if mutation_type == 3:
+        mutation.swap_node_mutation(individual)
     return individual, 
 
 
