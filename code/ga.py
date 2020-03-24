@@ -9,19 +9,26 @@ from deap import creator
 from deap import tools
 
 
-def init_individual(icls, config):
-    room_types=list(range(len(config.rooms)))
+def init_individual(icls, config, pref_rooms):
+    # + 1 to add exterior
+    num_rooms = max(2, int(round(random.gauss(pref_rooms, 0.7))))
+    room_types = [0] + [random.randint(1, len(config.rooms) - 1) for i in range(num_rooms)]
+    print(room_types)
     shape = (len(room_types), len(room_types))
-    ind = icls(numpy.random.randint(0, 1, shape), room_types)
+    ind = icls(numpy.zeros(shape), room_types)
     ind.permute_order()
+    spanning_tree = graph_util.get_spanning_tree(ind.adj_mat)
+    graph_util.fill_connections_randomly(ind.adj_mat, spanning_tree)
     return ind
 
 
 def get_fitness(individual, max_valences, max_rooms, config, pref_rooms):
-    num_rooms_penalty = abs(len(individual.room_types) - pref_rooms)
+    num_rooms_penalty = 1.9 * abs(len(individual.room_types) - 1 - pref_rooms)
     valence_penalty = individual.get_valence_violation(max_valences)
     num_room_types_penalty = individual.get_num_room_types_violation(max_rooms, config.rooms)
-    score = individual.get_roomtype_multiplication(config.adj_pref) / 2 ** (num_rooms_penalty + valence_penalty + num_room_types_penalty)
+    disconnect_penalty = 2 * (individual.get_disconnect_violation() - 1)
+    score = individual.get_roomtype_multiplication(config.adj_pref) / 2 ** (
+        num_rooms_penalty + valence_penalty + num_room_types_penalty + disconnect_penalty)
     return score, 
     """
     mult = numpy.multiply(individual, adj_pref)
@@ -42,14 +49,15 @@ def get_mutation(individual, config, indpb):
     """
     simple_flip_bit_mutation(individual, indpb)
     """
-    mutation_type = random.randint(0,3)
-    if mutation_type == 0:
+    probabilities = [0.4, 0.6, 0.4, 0.2]
+    mutation_type = random.uniform(0, sum(probabilities))
+    if mutation_type <= sum(probabilities[:1]):
         mutation.number_of_node_mutation(individual, config)
-    if mutation_type == 1:
+    elif mutation_type <= sum(probabilities[:2]):
         mutation.number_of_edge_mutation(individual)
-    if mutation_type == 2:
+    elif mutation_type <= sum(probabilities[:3]):
         mutation.node_label_mutation(individual, config)
-    if mutation_type == 3:
+    elif mutation_type <= sum(probabilities[:4]):
         mutation.swap_node_mutation(individual)
     return individual, 
 
@@ -89,26 +97,10 @@ def get_crossover(ind_1, ind_2):
 
     # Find spanning trees
     spanning_tree_1 = graph_util.get_spanning_tree(ind_1.adj_mat)
-
-    length = sum(len(spanning_tree_1[node_1]) for node_1 in spanning_tree_1)
-    assert length == len(ind_1.adj_mat) - 2
-
-    min_length_1 = len(ind_1.adj_mat) - 1
-    max_length_1 = (len(ind_1.adj_mat) - 1) * (len(ind_1.adj_mat)) / 2
-
     spanning_tree_2 = graph_util.get_spanning_tree(ind_2.adj_mat)
 
-    length = sum(len(spanning_tree_2[node_1]) for node_1 in spanning_tree_2)
-    assert length == len(ind_2.adj_mat) - 2
-
-    min_length_2 = len(ind_2.adj_mat) - 1
-    max_length_2 = (len(ind_2.adj_mat) - 1) * (len(ind_2.adj_mat)) / 2
-
-    # Determine final lengths
-    final_length_1 = random.randint(min_length_1, max_length_1)
-    final_length_2 = random.randint(min_length_2, max_length_2)
-
-    graph_util.set_num_connections(ind_1.adj_mat, spanning_tree_1, final_length_1)
-    graph_util.set_num_connections(ind_2.adj_mat, spanning_tree_2, final_length_2)
+    # Fill connections
+    graph_util.fill_connections_randomly(ind_1.adj_mat, spanning_tree_1)
+    graph_util.fill_connections_randomly(ind_2.adj_mat, spanning_tree_2)
 
     return ind_1, ind_2

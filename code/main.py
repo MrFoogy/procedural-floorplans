@@ -37,6 +37,7 @@ rel_ratios = numpy.ndarray(shape=(6,6), buffer=numpy.array([
      0,  0,  0,  0,  0,  0
 ]
 ))
+pref_rooms = 12
 
 config = BuildingConfig(rooms, adj_pref, rel_ratios)
 
@@ -46,10 +47,10 @@ creator.create("Individual", Individual, fitness=creator.FitnessMax)
 toolbox = base.Toolbox()
 
 toolbox.register("attr_bool", random.randint, 0, 1)
-toolbox.register("individual", ga.init_individual, creator.Individual, config)
+toolbox.register("individual", ga.init_individual, creator.Individual, config, pref_rooms)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     
-toolbox.register("evaluate", ga.get_fitness, pref_rooms=8, config=config,
+toolbox.register("evaluate", ga.get_fitness, pref_rooms=pref_rooms, config=config,
                  max_valences = [room.max_valence for room in config.rooms],
                  max_rooms = [room.max_num for room in config.rooms])
 toolbox.register("mate", ga.get_crossover)
@@ -63,7 +64,7 @@ def individual_to_str(ind):
 
 def main():
     
-    pop = toolbox.population(n=500)
+    pop = toolbox.population(n=350)
     
     # Numpy equality function (operators.eq) between two arrays returns the
     # equality element wise, which raises an exception in the if similar()
@@ -77,7 +78,7 @@ def main():
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
     
-    algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=40, stats=stats,
+    algorithms.eaSimple(pop, toolbox, cxpb=0.3, mutpb=0.8, ngen=60, stats=stats,
                         halloffame=hof)
 
     print("Best: \n", individual_to_str(hof[0]))

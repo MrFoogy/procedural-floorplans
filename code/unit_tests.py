@@ -180,5 +180,11 @@ class TestMutation(unittest.TestCase):
             mutation.swap_node_mutation(ind)
             self.assertTrue(ind.room_types == [0,1,2] or ind.room_types == [0,2,1])
 
+        data = np.zeros((2,2))
+        ind = Individual(data, [0, 1])
+        # Should not be able to do anything with only one non-exterior room
+        mutation.swap_node_mutation(ind)
+        self.assertTrue(ind.room_types == [0,1])
+
 if __name__ == '__main__':
     unittest.main()

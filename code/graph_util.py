@@ -87,6 +87,21 @@ def swap_lower_right(mat_1, mat_2, cutoff_1, cutoff_2):
     return new_mat_1, new_mat_2
 
 
+def fill_connections_randomly(mat, spanning_tree):
+    spanning_tree = get_spanning_tree(mat)
+
+    length = sum(len(spanning_tree[node]) for node in spanning_tree)
+    assert length == len(mat) - 2
+
+    min_connections = len(mat) - 1
+    max_connections = (len(mat) - 1) * (len(mat)) / 2
+
+    # Determine final lengths
+    num_connections = random.randint(min_connections, max_connections)
+
+    set_num_connections(mat, spanning_tree, num_connections)
+
+
 def set_num_connections(mat, spanning_tree, target_num_connections):
     # Make sure the spanning tree is included in the matrix
     for node_1 in spanning_tree:

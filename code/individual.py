@@ -1,4 +1,5 @@
 import numpy as np
+import graph_util
 
 class Individual:
     def __init__(self, adj_mat, room_types):
@@ -53,6 +54,12 @@ class Individual:
         for room_type in self.room_types:
             num_room_types[room_type] += 1
         return sum(max(num_room_types[i] - max_num_room_types[i], 0) for i in range(len(rooms)))
+
+
+    def get_disconnect_violation(self):
+        subtrees = graph_util.get_spanning_subtrees(self.adj_mat)
+        return len(subtrees)
+
 
     """
     def get_adj_value(self, permuted_self.adj_mat, room_id_1, room_id_2):
