@@ -66,23 +66,30 @@ def get_spanning_tree(matrix):
 
 
 def swap_lower_right(mat_1, mat_2, cutoff_1, cutoff_2):
+    # Make copies of the respective parts
     swap_mat_1 = mat_1[cutoff_1:, cutoff_1:].copy()
     swap_mat_2 = mat_2[cutoff_2:, cutoff_2:].copy()
-
     keep_mat_1 = mat_1[:cutoff_1, :cutoff_1].copy()
     keep_mat_2 = mat_2[:cutoff_2:, :cutoff_2].copy()
 
+    # Find new matrix sizes
     new_size_1 = cutoff_1 + len(mat_2) - cutoff_2
     new_size_2 = cutoff_2 + len(mat_1) - cutoff_1
 
+    # Initialize new matrices
     new_mat_1 = np.zeros((new_size_1, new_size_1))
     new_mat_2 = np.zeros((new_size_2, new_size_2))
 
+    # Perform the swap
     new_mat_1[:cutoff_1,:cutoff_1] = keep_mat_1
     new_mat_2[:cutoff_2,:cutoff_2] = keep_mat_2
 
     new_mat_1[cutoff_1:, cutoff_1:] = swap_mat_2
     new_mat_2[cutoff_2:, cutoff_2:] = swap_mat_1
+
+    # Special handling of the index 0 dummy room: carry over the exterior connections
+    new_mat_1[0,cutoff_1:] = mat_2[0,cutoff_2:].copy()
+    new_mat_2[0,cutoff_2:] = mat_1[0,cutoff_1:].copy()
 
     return new_mat_1, new_mat_2
 
@@ -102,11 +109,12 @@ def fill_connections_randomly(mat, spanning_tree):
     set_num_connections(mat, spanning_tree, num_connections)
 
 
-def set_num_connections(mat, spanning_tree, target_num_connections):
+def set_num_connections(mat, spanning_tree, target_num_connections, fill_tree=True):
     # Make sure the spanning tree is included in the matrix
-    for node_1 in spanning_tree:
-        for node_2 in spanning_tree[node_1]:
-            mat[min(node_1, node_2)][max(node_1, node_2)] = 1
+    if fill_tree:
+        for node_1 in spanning_tree:
+            for node_2 in spanning_tree[node_1]:
+                mat[min(node_1, node_2)][max(node_1, node_2)] = 1
 
     num_connections = sum(sum(mat))
     if num_connections < target_num_connections:
@@ -132,3 +140,16 @@ def set_num_connections(mat, spanning_tree, target_num_connections):
         random.shuffle(remove_candidates)
         for pair in remove_candidates[:int(num_connections - target_num_connections)]:
             mat[pair[0]][pair[1]] = 0
+
+
+def make_connected(mat):
+    spanning_tree = get_spanning_tree(mat)
+    for node_1 in spanning_tree:
+        for node_2 in spanning_tree[node_1]:
+            mat[min(node_1, node_2)][max(node_1, node_2)] = 1
+
+
+def make_exterior_connected(mat):
+    if sum(mat[0]) == 0:
+        connect_index = random.randint(1, len(mat) - 1)
+        mat[0,connect_index] = 1

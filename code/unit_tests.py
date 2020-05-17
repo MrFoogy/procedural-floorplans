@@ -9,8 +9,8 @@ from building_config import BuildingConfig
 
 class TestGA(unittest.TestCase):
     def test_permutation(self):
-        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 1, 0, 0, 1, 0, 0, 0]))
-        correct_permute_data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 1, 0, 0, 0]))
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 1, 0, 0, 1, 0, 0, 0]), dtype=np.int32)
+        correct_permute_data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 1, 0, 0, 0]), dtype=np.int32)
         individual = Individual(data, [0, 1, 2])
 
         new_order = [0, 2, 1]
@@ -58,12 +58,12 @@ class TestGA(unittest.TestCase):
 class TestGraphUtil(unittest.TestCase):
     def test_subgraph(self):
         # Test graph with no connections
-        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
         subgraphs = graph_util.get_subgraphs(data)
         self.assertTrue(len(subgraphs) == 3)
 
         # Graph with one connection
-        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 0, 0, 0, 0]))
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
         subgraphs = graph_util.get_subgraphs(data)
         self.assertTrue(len(subgraphs) == 2)
         self.assertTrue([0, 1] in subgraphs or [1, 0] in subgraphs)
@@ -71,21 +71,21 @@ class TestGraphUtil(unittest.TestCase):
 
         # Fully connected
         # TODO: this test relies on specific order in the subgraph creation (bad!)
-        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 1, 0, 0, 0, 0, 0, 0]))
+        data = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 1, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
         subgraphs = graph_util.get_subgraphs(data)
         self.assertTrue(subgraphs == [[0,1,2]])
     
 
     def test_swap_lower_right(self):
-        mat_1 = np.ndarray(shape=(3,3), buffer=np.repeat(1,9))
-        mat_2 = np.ndarray(shape=(4,4), buffer=np.repeat(2,16))
+        mat_1 = np.ndarray(shape=(3,3), buffer=np.repeat(1,9), dtype=np.int32)
+        mat_2 = np.ndarray(shape=(4,4), buffer=np.repeat(2,16), dtype=np.int32)
 
-        correct_1 = np.ndarray(shape=(2,2), buffer=np.array([1,0,0,2]))
-        correct_2 = np.ndarray(shape=(5,5), buffer=np.array([2,2,2,0,0,
+        correct_1 = np.ndarray(shape=(2,2), buffer=np.array([1,2,0,2]), dtype=np.int32)
+        correct_2 = np.ndarray(shape=(5,5), buffer=np.array([2,2,2,1,1,
                                                              2,2,2,0,0,
                                                              2,2,2,0,0,
                                                              0,0,0,1,1,
-                                                             0,0,0,1,1]))
+                                                             0,0,0,1,1]), dtype=np.int32)
         
         mat_1, mat_2 = graph_util.swap_lower_right(mat_1, mat_2, 1, 3)
         self.assertTrue(np.array_equal(mat_1, correct_1))
@@ -121,6 +121,15 @@ class TestGraphUtil(unittest.TestCase):
             spanning_tree = graph_util.get_spanning_tree(mat)
             length = sum(len(spanning_tree[node_1]) for node_1 in spanning_tree)
             self.assertEqual(length, len(mat) - 2)
+    
+    def test_make_exterior_connected(self):
+        mat = np.ndarray(shape=(3,3), buffer=np.array([0, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
+        graph_util.make_exterior_connected(mat)
+        self.assertTrue((mat[0,1] == 1) or (mat[0,2] == 1))
+        mat = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
+        correct = np.ndarray(shape=(3,3), buffer=np.array([0, 1, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
+        graph_util.make_exterior_connected(mat)
+        self.assertTrue(np.array_equal(mat, correct))
 
 
 class TestMutation(unittest.TestCase):
@@ -144,7 +153,7 @@ class TestMutation(unittest.TestCase):
         self.assertEqual(individual.get_sum(), 3)
         mutation.number_of_edge_mutation(individual, False)
         mutation.number_of_edge_mutation(individual, False)
-        self.assertEqual(individual.get_sum(), 1)
+        self.assertEqual(individual.get_sum(), 3)
 
         data = np.ndarray(shape=(3,3), buffer=np.array([0, 1.0, 1.0, 0, 0, 0, 0, 0, 0]))
         individual = Individual(data, [0, 1, 2])
@@ -157,12 +166,12 @@ class TestMutation(unittest.TestCase):
         mutation.number_of_edge_mutation(individual, True)
         self.assertEqual(individual.get_sum(), 1)
         mutation.number_of_edge_mutation(individual, False)
-        self.assertEqual(individual.get_sum(), 0)
+        self.assertEqual(individual.get_sum(), 2)
 
         # Full connections
         data = np.ndarray(shape=(3,3), buffer=np.array([0, 1.0, 1.0, 0, 0, 1.0, 0, 0, 0]))
         individual = Individual(data, [0, 1, 2])
-        mutation.number_of_edge_mutation(individual, False)
+        mutation.number_of_edge_mutation(individual, True)
         self.assertEqual(individual.get_sum(), 2)
 
     def test_node_label_mutation(self):

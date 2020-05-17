@@ -9,9 +9,9 @@ from deap import creator
 from deap import tools
 
 
-def init_individual(icls, config, pref_rooms):
+def init_individual(icls, config):
     # + 1 to add exterior
-    num_rooms = max(2, int(round(random.gauss(pref_rooms, 0.7))))
+    num_rooms = max(2, int(round(random.gauss(config.pref_rooms, 0.7))))
     room_types = [0] + [random.randint(1, len(config.rooms) - 1) for i in range(num_rooms)]
     print(room_types)
     shape = (len(room_types), len(room_types))
@@ -22,19 +22,27 @@ def init_individual(icls, config, pref_rooms):
     return ind
 
 
-def get_fitness(individual, max_valences, max_rooms, config, pref_rooms):
-    num_rooms_penalty = 1.9 * abs(len(individual.room_types) - 1 - pref_rooms)
-    valence_penalty = individual.get_valence_violation(max_valences)
-    num_room_types_penalty = individual.get_num_room_types_violation(max_rooms, config.rooms)
-    disconnect_penalty = 2 * (individual.get_disconnect_violation() - 1)
-    score = individual.get_roomtype_multiplication(config.adj_pref) / 2 ** (
-        num_rooms_penalty + valence_penalty + num_room_types_penalty + disconnect_penalty)
+def get_fitness(individual, config, should_print=False):
+    num_rooms_penalty = 3.0 * individual.get_num_rooms_penalty(config)
+    if (should_print):
+        print("Num rooms penalty: " + str(num_rooms_penalty))
+    valence_penalty = 2.0 * individual.get_valence_violation(config)
+    if (should_print):
+        print("Valence penalty: " + str(valence_penalty))
+    num_room_types_penalty = 1.0 * individual.get_num_room_types_violation(config)
+    adjacency_score = individual.get_adjacency_score(config)
+    if (should_print):
+        print("Adjacency score: " + str(adjacency_score))
+    utility_score = 5 * individual.get_utility_score(config)
+    if (should_print):
+        print("Utility score: " + str(utility_score))
+    score = (adjacency_score + utility_score) / 2 ** (
+        num_rooms_penalty + valence_penalty + num_room_types_penalty)
     return score, 
-    """
-    mult = numpy.multiply(individual, adj_pref)
-    return sum(sum(mult)), 
-    """
-    #return sum(sum(individual)), 
+
+
+def print_fitness(individual, config):
+    print("Total fitness: " + str(get_fitness(individual, config, True)))
 
 
 def simple_flip_bit_mutation(individual, indpb):

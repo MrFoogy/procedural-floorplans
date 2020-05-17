@@ -3,6 +3,7 @@ import random
 import graph_util
 
 def number_of_node_mutation(individual, building_config, is_extend = None):
+    begin_disconnect = individual.get_disconnect_violation()
     individual.permute_order()
     if is_extend is None:
         is_extend = bool(random.getrandbits(1))
@@ -11,6 +12,8 @@ def number_of_node_mutation(individual, building_config, is_extend = None):
         new_mat = individual.adj_mat[:-1,:-1].copy()
         individual.adj_mat = new_mat
         del individual.room_types[-1]
+        graph_util.make_connected(individual.adj_mat)
+        graph_util.make_exterior_connected(individual.adj_mat)
     else:
         # Extend
         new_mat = np.zeros((len(individual.adj_mat) + 1, len(individual.adj_mat) + 1))
@@ -19,18 +22,30 @@ def number_of_node_mutation(individual, building_config, is_extend = None):
         individual.room_types.append(new_room_type) 
         num_new_connections = random.randint(min(len(new_mat) - 1, building_config.rooms[new_room_type].max_valence[0]), 
                                              min(len(new_mat) - 1, building_config.rooms[new_room_type].max_valence[1]))
-        for i in range(num_new_connections):
+        # Don't connect to the exterior
+        for i in range(1, min(num_new_connections + 1, len(new_mat))):
             new_mat[i][-1] = 1
 
         individual.adj_mat = new_mat
+    end_disconnect = individual.get_disconnect_violation()
+    if end_disconnect > begin_disconnect:
+        print("Disconnect was increased!")
             
 
 def number_of_edge_mutation(individual, is_add = None):
+    # Important: assumes that the graph is connected
     if is_add is None:
         is_add = bool(random.getrandbits(1))
     max_ones = (len(individual.adj_mat) * (len(individual.adj_mat) - 1)) // 2
+    min_ones = len(individual.adj_mat) - 1
     current_sum = individual.get_sum()
+    spanning_tree = graph_util.get_spanning_tree(individual.adj_mat)
+    if (is_add and current_sum < max_ones) or current_sum <= min_ones:
+        graph_util.set_num_connections(individual.adj_mat, spanning_tree, current_sum + 1, False)
+    else:
+        graph_util.set_num_connections(individual.adj_mat, spanning_tree, current_sum - 1, False)
 
+    """
     try:
         if (is_add and current_sum < max_ones) or current_sum == 0:
             num_zeroes = max_ones - current_sum
@@ -45,12 +60,6 @@ def number_of_edge_mutation(individual, is_add = None):
                     continue
                 if individual.adj_mat[i][j] != is_add:
                     if count == change_index:
-                        """
-                        if individual.adj_mat[i][j] > 0.5:
-                            individual.adj_mat[i][j] = 0
-                        else:
-                            individual.adj_mat[i][j] = 1
-                            """
                         individual.adj_mat[i][j] = 1.0 - individual.adj_mat[i][j]
                         return
                     count += 1
@@ -58,6 +67,7 @@ def number_of_edge_mutation(individual, is_add = None):
         print()
         print(individual.adj_mat)
         raise
+    """
 
 
 def node_label_mutation(individual, config):

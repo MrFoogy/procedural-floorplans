@@ -29,7 +29,12 @@ class Individual:
         self.room_types = [old_room_types[index] for index in new_order]
 
 
-    def get_roomtype_multiplication(self, room_type_mat):
+    def get_building_size(self):
+        return len(self.room_types)
+
+
+    def get_adjacency_score(self, config):
+        room_type_mat = config.adj_pref
         total_sum = 0
         for i in range(len(self.adj_mat)):
             for j in range(len(self.adj_mat[i])):
@@ -39,17 +44,35 @@ class Individual:
                 total_sum += self.adj_mat[i][j] * room_type_mat[min(room_type_1, room_type_2)][max(room_type_1, room_type_2)]
         return total_sum
 
-    def get_valence_violation(self, valence_lims):
-        valences = {i: 0 for i in range(len(valence_lims))}
+    def get_utility_score(self, config):
+        target_utilities = config.target_utilities
+        rooms_def = config.rooms
+        current_utilities = { type : 0.0 for type in target_utilities }
+        for room_type in self.room_types:
+            for utility_type in rooms_def[room_type].utilities:
+                current_utilities[utility_type] += rooms_def[room_type].utilities[utility_type]
+        score = 0.0
+        for utility_type in current_utilities:
+            score += min(target_utilities[utility_type], current_utilities[utility_type])
+        return score
+
+    def get_num_rooms_penalty(self, config):
+        return abs(len(self.room_types) - 1 - config.pref_rooms)       
+
+    def get_valence_violation(self, config):
+        valence_lims = config.get_max_valences()
+        valences = [0 for i in range(len(self.room_types))]
         for i in range(len(self.adj_mat)):
             for j in range(len(self.adj_mat[i])):
                 if self.adj_mat[i][j]:
-                    valences[self.room_types[i]] += 1
-                    valences[self.room_types[j]] += 1
+                    valences[i] += 1
+                    valences[j] += 1
         
-        return sum(max(valences[i] - valence_lims[i][1], valence_lims[i][0] - valences[i], 0) for i in range(len(valence_lims)))
+        return sum(max(valences[i] - valence_lims[self.room_types[i]][1], valence_lims[self.room_types[i]][0] - valences[i], 0) for i in range(len(self.room_types)))
 
-    def get_num_room_types_violation(self, max_num_room_types, rooms):
+    def get_num_room_types_violation(self, config):
+        max_num_room_types = config.get_max_rooms()
+        rooms = config.rooms
         num_room_types = {i: 0 for i in range(len(rooms))}
         for room_type in self.room_types:
             num_room_types[room_type] += 1
