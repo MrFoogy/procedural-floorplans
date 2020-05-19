@@ -13,7 +13,6 @@ def init_individual(icls, config):
     # + 1 to add exterior
     num_rooms = max(2, int(round(random.gauss(config.pref_rooms, 0.7))))
     room_types = [0] + [random.randint(1, len(config.rooms) - 1) for i in range(num_rooms)]
-    print(room_types)
     shape = (len(room_types), len(room_types))
     ind = icls(numpy.zeros(shape), room_types)
     ind.permute_order()

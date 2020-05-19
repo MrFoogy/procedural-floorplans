@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import graph_drawing
+import json
 
 from deap import algorithms
 from deap import base
@@ -69,7 +70,7 @@ def individual_to_str(ind):
     return str(ind)
 
 
-def main():
+def run_ga(produce_output):
     population_size = 300
     num_results = 5
     pop = toolbox.population(n=population_size)
@@ -85,6 +86,7 @@ def main():
     stats_utility_score = tools.Statistics(lambda ind: ind.get_utility_score(config))
     stats_valence_pen = tools.Statistics(lambda ind: ind.get_valence_violation(config))
     stats_num_rooms_pen = tools.Statistics(lambda ind: ind.get_num_rooms_penalty(config))
+    stats_types = ["fitness", "adj_score", "utility_score", "valence_pen", "num_rooms_pen"]
     mstats = tools.MultiStatistics(fitness=stats_fit, adj_score=stats_adj_score, utility_score=stats_utility_score, valence_pen=stats_valence_pen, num_rooms_pen=stats_num_rooms_pen)
     mstats.register("avg", np.mean)
     """
@@ -93,21 +95,24 @@ def main():
     mstats.register("max", np.max)
     """
     
-    algorithms.eaMuPlusLambda(pop, toolbox, population_size, population_size, cxpb=0.5, mutpb=0.5, ngen=100, stats=mstats,
+    pop, logbook = algorithms.eaMuPlusLambda(pop, toolbox, population_size, population_size, cxpb=0.5, mutpb=0.5, ngen=100, stats=mstats,
                         halloffame=hof)
     """
     algorithms.eaSimple(pop, toolbox, cxpb=0.3, mutpb=0.8, ngen=60, stats=stats,
                         halloffame=hof)
     """
+    record = mstats.compile(pop)
     best = hof[0]
 
-    print("Best: \n", individual_to_str(best))
-    ga.print_fitness(best, config)
+    if produce_output:
+        print("Best: \n", individual_to_str(best))
+        ga.print_fitness(best, config)
 
-    for i in range(num_results):
-        graph_drawing.visualize(rooms, hof[i])
+        for i in range(num_results):
+            graph_drawing.visualize(rooms, hof[i])
 
-    return pop, mstats, hof
+    #return pop, mstats, hof
+    return {"timeline": logbook.chapters}
 
 if __name__ == "__main__":
-    main()
+    run_ga(True)
