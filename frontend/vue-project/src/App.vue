@@ -5,7 +5,7 @@
       color="primary"
       dark
     >
-      <v-btn id="setupButton" @click="setupClick">
+      <v-btn color="accent" id="setupButton" @click="setupClick">
         Setup
       </v-btn>
       <v-tabs
@@ -23,7 +23,7 @@
 
     <v-content>
       <Setup v-if="tab == null" @dataFetched="addData"/>
-      <Results v-else :data="selectedData"/>
+      <Results v-else :fullData="selectedData"/>
     </v-content>
   </v-app>
 </template>

@@ -6,8 +6,8 @@ class Room:
         self.max_num = max_num
         self.utilities = utilities
 
-    def get_display_name(self, index):
-        return self.name + '-' + str(index)
+    def get_display_name(self, index=-1):
+        return self.name
 
     def is_exterior(self):
         return self.ident == 0
