@@ -1,5 +1,6 @@
 import numpy as np
 import graph_util
+import heapq
 
 class Individual:
     def __init__(self, adj_mat, room_types):
@@ -32,16 +33,21 @@ class Individual:
     def get_building_size(self):
         return len(self.room_types)
 
-
     def get_adjacency_score(self, config):
-        room_type_mat = config.adj_pref
+        return self.get_roomtype_mult(self.adj_mat, config.adj_pref)
+    
+    def get_distance_score(self, config):
+        return self.get_roomtype_mult(self.get_all_pairs_distances(), config.dist_pref)
+    
+    def get_roomtype_mult(self, base_mat, room_type_mat):
         total_sum = 0
-        for i in range(len(self.adj_mat)):
-            for j in range(len(self.adj_mat[i])):
+        for i in range(len(self.room_types)):
+            for j in range(len(self.room_types)):
+                if i >= j:
+                    continue
                 room_type_1 = self.room_types[i]
                 room_type_2 = self.room_types[j]
-
-                total_sum += self.adj_mat[i][j] * room_type_mat[min(room_type_1, room_type_2)][max(room_type_1, room_type_2)]
+                total_sum += base_mat[i][j] * room_type_mat[min(room_type_1, room_type_2)][max(room_type_1, room_type_2)]
         return total_sum
 
     def get_utility_score(self, config):
@@ -82,6 +88,43 @@ class Individual:
     def get_disconnect_violation(self):
         subtrees = graph_util.get_spanning_subtrees(self.adj_mat)
         return len(subtrees)
+
+
+    def get_all_pairs_distances(self):
+        # All pairs shortest distances
+        res = np.full((len(self.adj_mat), len(self.adj_mat)), np.inf) 
+
+        # First find adjacency lists
+        connections_dict = {}
+        for i in range(len(self.adj_mat)):
+            connections_dict[i] = []
+        for i in range(len(self.adj_mat)):
+            for j in range(len(self.adj_mat)):
+                if self.adj_mat[i][j] > 0:
+                    connections_dict[i].append(j)
+                    connections_dict[j].append(i)
+
+        # Dijkstra's algorithm for evey node
+        for i in range(len(self.adj_mat)):
+            pq = [(0, i)]
+            res[i][i] = 0
+            while len(pq) > 0:
+                current_distance, current_vertex = heapq.heappop(pq)
+                if current_distance > res[i][current_vertex]:
+                    continue
+
+                for neighbor in connections_dict[current_vertex]:
+                    distance = current_distance + 1
+
+                    if distance < res[i][neighbor]:
+                        res[i][neighbor] = distance
+                        heapq.heappush(pq, (distance, neighbor))
+            
+            for j in range(len(self.adj_mat)):
+                if res[i][j] == np.inf:
+                    res[i][j] = 0.0
+        
+        return res
 
 
     """

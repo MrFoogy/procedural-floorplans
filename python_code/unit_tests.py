@@ -30,6 +30,7 @@ class TestGA(unittest.TestCase):
         shape = (rooms, rooms)
         adjacencies = np.random.randint(0, 2, shape)
         preferences = np.random.randint(-3, 4, shape)
+        config = BuildingConfig([], preferences, None, None, None)
         # Make sure is diagonal
         for i in range(rooms):
             for j in range(rooms):
@@ -39,7 +40,7 @@ class TestGA(unittest.TestCase):
     
 
         individual = Individual(adjacencies, list(range(rooms)))
-        original_fitness = individual.get_roomtype_multiplication(preferences)
+        original_fitness = individual.get_adjacency_score(config)
         for i in range(5):
             """
             print('Original adj\n', adjacencies)
@@ -51,7 +52,7 @@ class TestGA(unittest.TestCase):
             print('Permuted order\n', meta.room_types)
             print('Preferences\n', preferences)
             """
-            permuted_fitness = individual.get_roomtype_multiplication(preferences)
+            permuted_fitness = individual.get_adjacency_score(config)
             self.assertEqual(original_fitness, permuted_fitness)
 
 
@@ -131,10 +132,22 @@ class TestGraphUtil(unittest.TestCase):
         graph_util.make_exterior_connected(mat)
         self.assertTrue(np.array_equal(mat, correct))
 
+    def test_pair_distances(self):
+        data = np.ndarray(shape=(4,4), buffer=np.array([0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
+        correct_result = np.ndarray(shape=(4,4), buffer=np.array([0, 1, 1, 1, 1, 0, 2, 1, 1, 2, 0, 2, 1, 1, 2, 0]), dtype=np.int32)
+        ind = Individual(data, [0, 1, 2, 3])
+        pair_distances = ind.get_all_pairs_distances()
+        self.assertTrue(np.array_equal(pair_distances, correct_result))
+
+        # Also test distance score
+        dist_pref = np.ndarray(shape=(4,4), buffer=np.array([0, 1, -1, -1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
+        config = BuildingConfig([], None, dist_pref, None, None)
+        self.assertEqual(ind.get_distance_score(config), 1)
+
 
 class TestMutation(unittest.TestCase):
     def test_number_of_node_mutation(self):
-        config = BuildingConfig([Room("A", 0, (2, 4), 1), Room("B", 0, (2, 4), 1), Room("C", 0, (2, 4), 1)], None, None)
+        config = BuildingConfig([Room("A", 0, (2, 4), 1, None), Room("B", 0, (2, 4), 1, None), Room("C", 0, (2, 4), 1, None)], None, None, None, None)
         data = np.zeros((3,3))
         ind = Individual(data, [0, 1, 2])
         mutation.number_of_node_mutation(ind, config, True)
@@ -175,7 +188,7 @@ class TestMutation(unittest.TestCase):
         self.assertEqual(individual.get_sum(), 2)
 
     def test_node_label_mutation(self):
-        config = BuildingConfig([Room("A", 0, (2, 4), 1), Room("B", 0, (2, 4), 1), Room("C", 0, (2, 4), 1)], None, None)
+        config = BuildingConfig([Room("A", 0, (2, 4), 1, None), Room("B", 0, (2, 4), 1, None), Room("C", 0, (2, 4), 1, None)], None, None, None, None)
         data = np.zeros((3,3))
         ind = Individual(data, [0, 1, 2])
         for i in range(10):
@@ -194,6 +207,7 @@ class TestMutation(unittest.TestCase):
         # Should not be able to do anything with only one non-exterior room
         mutation.swap_node_mutation(ind)
         self.assertTrue(ind.room_types == [0,1])
+
 
 if __name__ == '__main__':
     unittest.main()

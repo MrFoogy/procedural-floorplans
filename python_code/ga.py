@@ -25,19 +25,23 @@ def get_fitness(individual, config, should_print=False):
     num_rooms_penalty = 3.0 * individual.get_num_rooms_penalty(config)
     if (should_print):
         print("Num rooms penalty: " + str(num_rooms_penalty))
-    valence_penalty = 2.0 * individual.get_valence_violation(config)
+    valence_penalty = 1.0 * individual.get_valence_violation(config)
     if (should_print):
         print("Valence penalty: " + str(valence_penalty))
     num_room_types_penalty = 1.0 * individual.get_num_room_types_violation(config)
     adjacency_score = individual.get_adjacency_score(config)
     if (should_print):
         print("Adjacency score: " + str(adjacency_score))
+    distance_score = 0.3 * individual.get_distance_score(config)
+    if (should_print):
+        print("Distance score: " + str(distance_score))
     utility_score = 5 * individual.get_utility_score(config)
     if (should_print):
         print("Utility score: " + str(utility_score))
-    score = (adjacency_score + utility_score) / 2 ** (
+    score = (adjacency_score + utility_score + distance_score) / 2 ** (
         num_rooms_penalty + valence_penalty + num_room_types_penalty)
     return score, 
+
 
 
 def print_fitness(individual, config):

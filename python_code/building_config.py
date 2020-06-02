@@ -1,8 +1,8 @@
 class BuildingConfig:
-    def __init__(self, rooms, adj_pref, rel_ratios, pref_rooms, target_utilities):
+    def __init__(self, rooms, adj_pref, dist_pref, pref_rooms, target_utilities):
         self.rooms = rooms
         self.adj_pref = adj_pref
-        self.rel_ratios = rel_ratios
+        self.dist_pref = dist_pref
         self.pref_rooms = pref_rooms
         self.target_utilities = target_utilities
 

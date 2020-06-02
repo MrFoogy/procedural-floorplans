@@ -46,6 +46,7 @@ def serialize_building_fitness(individual, config):
     return { 
             "fitness": ga.get_fitness(individual, config)[0],
             "adj_score": individual.get_adjacency_score(config), 
+            "dist_score": individual.get_distance_score(config), 
             "utility_score": individual.get_utility_score(config), 
             "valency_pen": individual.get_valence_violation(config), 
             "num_rooms_pen": individual.get_num_room_types_violation(config), 
