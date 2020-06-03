@@ -32,10 +32,10 @@ def get_fitness(individual, config, should_print=False):
     adjacency_score = individual.get_adjacency_score(config)
     if (should_print):
         print("Adjacency score: " + str(adjacency_score))
-    distance_score = 0.3 * individual.get_distance_score(config)
+    distance_score = 0.4 * individual.get_distance_score(config)
     if (should_print):
         print("Distance score: " + str(distance_score))
-    utility_score = 5 * individual.get_utility_score(config)
+    utility_score = 8 * individual.get_utility_score(config)
     if (should_print):
         print("Utility score: " + str(utility_score))
     score = (adjacency_score + utility_score + distance_score) / 2 ** (

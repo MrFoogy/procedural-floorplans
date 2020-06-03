@@ -22,11 +22,11 @@ rooms.append(Room("Kitchen", 3, (1, 2), 2, {"cooking": 1.0, "eating": 1.0}))
 rooms.append(Room("Bedroom", 4, (1, 1), 10, {"sleeping": 1.0}))
 rooms.append(Room("Toilet", 5, (1, 1), 10, {"wc": 1.0}))
 rooms.append(Room("Bathroom", 6, (1, 1), 10, {"shower": 1.0, "wc": 1.0}))
-rooms.append(Room("Living room", 7, (1, 2), 10, {"gathering": 1.0, "leisure": 1.0}))
-rooms.append(Room("Dining room", 8, (1, 2), 10, {"gathering": 1.0, "eating": 1.0}))
+rooms.append(Room("Living room", 7, (1, 3), 10, {"gathering": 1.0, "leisure": 1.0}))
+rooms.append(Room("Dining room", 8, (1, 3), 10, {"gathering": 1.0, "eating": 1.0}))
 target_utilities = {"cooking": 1.0, "sleeping": 2.0, "wc": 2.0, "shower": 1.0, "leisure": 1.0, "gathering": 1.0, "eating": 1.0}
 adj_pref = np.ndarray(shape=(9,9), buffer=np.array([
-     0.0,  3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, # Exterior
+     0.0,  5.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, -3.0, # Exterior
      0.0, -2.0,  2.0, -2.0, -3.0, -3.0, -3.0,  1.0,  1.0, # Entrance
      0.0,  0.0, -2.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, # Corridor
      0.0,  0.0,  0.0, -2.0, -2.0, -2.0, -2.0,  1.0,  2.0, # Kitchen
@@ -39,14 +39,14 @@ adj_pref = np.ndarray(shape=(9,9), buffer=np.array([
 ))
 dist_pref = np.ndarray(shape=(9,9), buffer=np.array([
      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, # Exterior
-     0.0,  1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, # Entrance
+     0.0, -3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0,  3.0, # Entrance
      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, # Corridor
-     0.0,  0.0,  0.0, -1.0, -0.0, -0.0, -0.0,  0.0, -1.0, # Kitchen
-     0.0,  0.0,  0.0,  0.0, -1.0, -1.0, -1.0,  0.0, -0.0, # Bedroom
-     0.0,  0.0,  0.0,  0.0,  0.0,  1.0,  1.0,  0.0, -0.0, # Toilet
-     0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1.0,  0.0, -0.0, # Bathroom
+     0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  2.0, # Kitchen
+     0.0,  0.0,  0.0,  0.0,  3.0,  2.0,  2.0,  0.0,  0.0, # Bedroom
+     0.0,  0.0,  0.0,  0.0,  0.0, -3.0, -3.0,  0.0,  0.0, # Toilet
+     0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -3.0,  0.0,  0.0, # Bathroom
      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, # Living room
-     0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.0 # Dining room
+     0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0 # Dining room
 ]
 ))
 rel_ratios = np.ndarray(shape=(9,9), buffer=np.array([
@@ -61,6 +61,20 @@ rel_ratios = np.ndarray(shape=(9,9), buffer=np.array([
      0,  0,  0,  0,  0,  0,  0,  0,  0
 ]
 ), dtype=np.int32)
+
+model_room_types = [0, 1, 2, 3, 7, 5, 2, 4, 4, 6]
+model_adj_mat = np.ndarray(shape=(10,10), buffer=np.array(
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 1, 1, 0, 1, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=np.int32)
+model_ind = Individual(model_adj_mat, model_room_types)
 
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -119,7 +133,7 @@ def run_ga(generations, population_size, building_size, hof_size, produce_output
 
 
     #return pop, mstats, hof
-    return data_format.format_full_output(logbook.chapters, hof, config)
+    return data_format.format_full_output(logbook.chapters, hof, model_ind, config)
 
 if __name__ == "__main__":
     run_ga(10, 300, 8, 10, False)

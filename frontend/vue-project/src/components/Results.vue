@@ -26,6 +26,7 @@
 
 <script>  
 import Chart from 'chart.js'
+import "chartjs-plugin-annotation";
 import { DataSet } from "vis-data/peer";
 import { Network } from "vis-network/peer";
 import "vis-network/styles/vis-network.css";
@@ -104,6 +105,23 @@ export default {
           element.data.push({x: j, y: sourceData[j]});
         }
       }
+      // Update the reference line
+      var refValue = this.fullData["reference"]["scores"][this.selectedStat]
+      this.chart.options.annotation = {
+          drawTime: 'afterDatasetsDraw',
+          annotations: [{
+            type: 'line',
+            mode: 'horizontal',
+            scaleID: 'y-axis-0',
+            value: refValue,
+            borderColor: 'rgb(75, 192, 192)',
+            borderWidth: 2,
+            label: {
+              enabled: true,
+              content: 'Reference'
+            },
+          }],
+        };
     },
 
     updateNetwork() {

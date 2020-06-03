@@ -37,7 +37,21 @@ class Individual:
         return self.get_roomtype_mult(self.adj_mat, config.adj_pref)
     
     def get_distance_score(self, config):
-        return self.get_roomtype_mult(self.get_all_pairs_distances(), config.dist_pref)
+        sum = 0
+        distances_mat = self.get_all_pairs_distances()
+        for i in range(len(distances_mat)):
+            for j in range(len(distances_mat)):
+                room_type_1 = self.room_types[i]
+                room_type_2 = self.room_types[j]
+                dist_pref_val = config.dist_pref[min(room_type_1, room_type_2)][max(room_type_1, room_type_2)]
+                if dist_pref_val > 0:
+                    # Max dist
+                    sum += min(0, dist_pref_val - distances_mat[i][j])
+                if dist_pref_val < 0:
+                    # Min dist
+                    sum += min(0, distances_mat[i][j] + dist_pref_val)
+
+        return sum
     
     def get_roomtype_mult(self, base_mat, room_type_mat):
         total_sum = 0

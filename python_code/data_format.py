@@ -1,8 +1,8 @@
 import ga
 
 
-def format_full_output(logbook_chapters, hof, config):
-    return {"graph": format_log_output(logbook_chapters), "hof": serialize_hof(hof, config)}
+def format_full_output(logbook_chapters, hof, model_ind, config):
+    return {"graph": format_log_output(logbook_chapters), "hof": serialize_hof(hof, config), "reference": serialize_building(model_ind, config)}
 
 
 def format_log_output(logbook_chapters):
