@@ -1,7 +1,7 @@
-from building import Building
-from building import BuildingRoom
-from building import BuildingShape
-from room_pref import RoomPref
+from geometry.building import Building
+from geometry.building import BuildingRoom
+from geometry.building import BuildingShape
+from geometry.room_pref import RoomPref
 import random
 
 def get_test_building():

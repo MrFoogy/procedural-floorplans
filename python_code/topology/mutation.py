@@ -1,6 +1,6 @@
 import numpy as np
 import random
-import graph_util
+from topology import graph_util
 
 def number_of_node_mutation(individual, building_config, is_extend = None):
     begin_disconnect = individual.get_disconnect_violation()

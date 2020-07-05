@@ -1,6 +1,5 @@
 import random
 import numpy as np
-import graph_drawing
 import json
 
 from deap import algorithms
@@ -8,11 +7,12 @@ from deap import base
 from deap import creator
 from deap import tools
 
-import ga
-import data_format
-from room import Room
-from individual import Individual
-from building_config import BuildingConfig
+from topology import graph_drawing
+from topology import ga
+from topology import data_format
+from topology.room import Room
+from topology.individual import Individual
+from topology.building_config import BuildingConfig
 
 rooms = []
 rooms.append(Room("Exterior", 0, (1, 4), 10, {}))

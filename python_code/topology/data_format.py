@@ -1,4 +1,4 @@
-import ga
+from topology import ga
 
 
 def format_full_output(logbook_chapters, hof, model_ind, config):

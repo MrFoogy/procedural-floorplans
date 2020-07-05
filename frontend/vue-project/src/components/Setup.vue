@@ -19,15 +19,20 @@
         label="Hall-of-fame size"
       ></v-text-field>
     </div>
+    <FloorPlan ref="floorplan"/>
     <v-btn color="accent" @click=fetchData> Run </v-btn>
   </div>
 </template>
 
 <script>  
 import axios from 'axios'; 
+import FloorPlan from './FloorPlan'
 export default {
   name: 'Setup',
   props: {
+  },
+  components: {
+    FloorPlan,
   },
   data: function() {
     return {
@@ -36,6 +41,9 @@ export default {
       building_size: 9,
       hof_size: 10,
     }
+  },
+  mounted() {
+    this.fetchFloorPlan();
   },
   methods: {
     fetchData() {
@@ -53,6 +61,14 @@ export default {
       var data = [{x: 10, y: 20}, {x: 15, y: 10}];
       this.$emit('dataFetched', data);
       */
+    },
+    fetchFloorPlan() {
+      axios.get('http://127.0.0.1:5000/geometry', {
+        params: {
+        }
+      }).then(response => {
+        this.$refs.floorplan.setData(response.data);
+      });
     }
   }
 }

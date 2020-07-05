@@ -1,7 +1,7 @@
 import random
-import graph_util
+from topology import graph_util
 import numpy
-import mutation
+from topology import mutation
 
 from deap import algorithms
 from deap import base

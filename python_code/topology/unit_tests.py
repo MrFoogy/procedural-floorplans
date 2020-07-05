@@ -1,11 +1,11 @@
 import unittest
 import random
 import numpy as np
-import graph_util
-import mutation
-from individual import Individual
-from room import Room
-from building_config import BuildingConfig
+from topology import graph_util
+from topology import mutation
+from topology.individual import Individual
+from topology.room import Room
+from topology.building_config import BuildingConfig
 
 class TestGA(unittest.TestCase):
     def test_permutation(self):

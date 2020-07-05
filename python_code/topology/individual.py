@@ -1,5 +1,5 @@
 import numpy as np
-import graph_util
+from topology import graph_util
 import heapq
 
 class Individual:

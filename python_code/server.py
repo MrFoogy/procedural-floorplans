@@ -1,9 +1,9 @@
 from flask import Flask, request
 from flask_cors import CORS
-from np_encoder import NpEncoder
-import main
+from topology.np_encoder import NpEncoder
+import topology.main
 import json
-from building_gen.geometry_gen import get_test_building
+from geometry.geometry_gen import get_test_building
 
 app = Flask(__name__)
 CORS(app)
