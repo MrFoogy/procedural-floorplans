@@ -21,8 +21,8 @@ export default {
   methods: {
     setData(data) {
       this.createShape(data.lot, 'rgb(50, 50, 50)');
-      var lotWidth = data.lot.width;
-      var lotHeight = data.lot.height;
+      var lotWidth = Math.abs(data.lot.points[0][0] - data.lot.points[1][0]);
+      var lotHeight = Math.abs(data.lot.points[1][1] - data.lot.points[2][1]);
       var scale = Math.min((this.canvasWidth - 50) / lotWidth, (this.canvasHeight - 50) / lotHeight);
       var extraX = this.canvasWidth - scale * lotWidth;
       var extraY = this.canvasHeight - scale * lotHeight;
@@ -34,19 +34,20 @@ export default {
       console.log(data);
     },
     createShape(shapeData, color) {
-      var height = shapeData.height;
-      var width = shapeData.width;
-      var position = shapeData.position;
-      var rect = this.two.makeRectangle(position[0], position[1], width, height);
-      rect.noFill();
-      rect.opacity = 1.0;
-      rect.stroke = color;
-      rect.linewidth = 0.1;
+      var vertices = []
+      for (var i = 0; i < shapeData.points.length; i++) {
+        vertices.push(new Two.Anchor(shapeData.points[i][0], shapeData.points[i][1]));
+      }
+      var path = this.two.makePath(vertices, false);
+      path.noFill();
+      path.opacity = 1.0;
+      path.stroke = color;
+      path.linewidth = 0.1;
       this.two.update();
     },
     createRoom(roomData) {
       this.createShape(roomData.shape, 'rgb(0, 0, 0)');
-      var text = this.two.makeText(roomData.name, roomData.shape.position[0], roomData.shape.position[1])
+      var text = this.two.makeText(roomData.name, roomData.shape.center[0], roomData.shape.center[1])
       text.size = 0.5;
       this.two.update();
     },
