@@ -14,7 +14,7 @@ def hello_world():
     individuals = json.loads(request.args.get("individuals"))
     building_size = json.loads(request.args.get("building_size"))
     hof_size = json.loads(request.args.get("hof_size"))
-    return json.dumps(main.run_ga(generations, individuals, building_size, hof_size, False), cls=NpEncoder)
+    return json.dumps(topology.main.run_ga(generations, individuals, building_size, hof_size, False), cls=NpEncoder)
 
 
 @app.route('/geometry')
