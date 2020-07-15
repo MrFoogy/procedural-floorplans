@@ -2,6 +2,11 @@
 <template>
   <div>
     <div id="two-container"/>
+    <v-pagination
+      v-model="selectedIteration"
+      :length="numIterations"
+      :total-visible="10"
+    ></v-pagination>
   </div>
 </template>
 
@@ -16,10 +21,21 @@ export default {
       two: null,
       canvasWidth: 600,
       canvasHeight: 600,
+      selectedIteration: 1,
+      numIterations: 0,
+      fullData: null,
     }
   },
   methods: {
     setData(data) {
+      this.fullData = data;
+      this.numIterations = data.length
+      this.updateScene();
+    },
+    updateScene() {
+      this.two.clear();
+      if (this.fullData == null) return;
+      var data = this.fullData[this.selectedIteration - 1];
       this.createShape(data.lot, 'rgb(50, 50, 50)');
       var lotWidth = Math.abs(data.lot.points[0][0] - data.lot.points[1][0]);
       var lotHeight = Math.abs(data.lot.points[1][1] - data.lot.points[2][1]);
@@ -29,13 +45,8 @@ export default {
       this.two.scene.translation.set(scale * (lotWidth / 2) + extraX / 2, scale * (lotHeight / 2) + extraY / 2);
       this.two.scene.scale = scale;
       this.createGrid(data.lot.points[0][0], data.lot.points[1][0], data.lot.points[1][1], data.lot.points[2][1], data.gridSize);
-      var rect = this.two.makeRectangle(0.0, 0.0, 5.0, 5.0);
-      rect.noFill();
-      rect.linewidth = 0.1;
-      rect.stroke = 'rgb(0, 200, 0)';
-      this.two.update();
       for (var i = 0; i < data.rooms.length; i++) {
-        this.createRoom(data.rooms[i]);
+        this.createRoom(data.rooms[i], 'rgb(0, 0, 0)');
       }
       console.log(data);
     },
@@ -45,7 +56,7 @@ export default {
         vertices.push(new Two.Anchor(shapeData.points[i][0], shapeData.points[i][1]));
         var circle = this.two.makeCircle(shapeData.points[i][0], shapeData.points[i][1], 0.15);
         circle.fill = 'rgb(150, 50, 50)';
-        circle.opacity = 0.5;
+        circle.opacity = 0.75;
         circle.linewidth = 0;
         /*
         var text = this.two.makeText(i, shapeData.points[i][0], shapeData.points[i][1])
@@ -60,8 +71,8 @@ export default {
       path.linewidth = 0.1;
       this.two.update();
     },
-    createRoom(roomData) {
-      this.createShape(roomData.shape, 'rgb(0, 0, 0)');
+    createRoom(roomData, color) {
+      this.createShape(roomData.shape, color);
       var text = this.two.makeText(roomData.name, roomData.shape.center[0], roomData.shape.center[1])
       text.size = 0.5;
       this.two.update();
@@ -105,6 +116,11 @@ export default {
     var elem = document.getElementById('two-container');
     var params = { width: this.canvasWidth, height: this.canvasHeight };
     this.two = new Two(params).appendTo(elem);
+  },
+  watch: {
+    selectedIteration: function() {
+      this.updateScene();
+    },
   },
 }
 </script>

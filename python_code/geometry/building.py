@@ -1,13 +1,14 @@
 import random
 import geometry.util as util
+import copy
 
 class Building:
-    def __init__(self, rooms, lot_shape, grid_size, walls_horizontal, walls_vertical):
+    def __init__(self, rooms, grid_size, walls_horizontal, walls_vertical, adjacency_dict):
         self.rooms = rooms
-        self.lot_shape = lot_shape
         self.grid_size = grid_size
         self.walls_horizontal = walls_horizontal
         self.walls_vertical = walls_vertical
+        self.adjacency_dict = adjacency_dict
     
     def serialize(self):
         return {"rooms": [room.serialize() for room in self.rooms], "lot": self.lot_shape.serialize(), 
@@ -19,16 +20,109 @@ class Building:
     
     def get_wall_set(self, is_horizontal):
         return self.walls_horizontal if is_horizontal else self.walls_vertical
+    
+    def push_hit_walls(self, pushing_shape, start_index, distance):
+        next_index = (start_index + 1) % len(pushing_shape.points)
+        is_horizontal = pushing_shape.is_wall_horizontal(start_index)
+        cross_coord_index = 1 if is_horizontal else 0
+        align_coord_index = 0 if is_horizontal else 1
+        wall_set = self.walls_horizontal if is_horizontal else self.walls_vertical
+        start_cross = pushing_shape.points[start_index][cross_coord_index]
+        end_cross = start_cross + distance
+        scan_end_cross = end_cross
+        # Make sure not to scan the walls at the end point of the push
+        if distance < 0:
+            scan_end_cross += self.grid_size
+        else:
+            scan_end_cross -= self.grid_size
+        align_coord_1 = pushing_shape.points[start_index][align_coord_index]
+        align_coord_2 = pushing_shape.points[next_index][align_coord_index]
+        align_start = min(align_coord_1, align_coord_2)
+        align_end = max(align_coord_1, align_coord_2)
+        scanned_walls = wall_set.scan_walls(min(start_cross, scan_end_cross), 
+                                            max(start_cross, scan_end_cross), 
+                                            align_start, align_end)
+
+        for room_id in scanned_walls:
+            if room_id == pushing_shape.room_id:
+                continue
+            hit_shape = self.rooms[room_id].shape
+            for wall_info in scanned_walls[room_id]:
+                wall_start, wall_end = wall_info[1]
+                cross_coord = wall_info[0]
+                hit_shape.push_wall_at(is_horizontal, wall_start, wall_end, cross_coord, 
+                                       align_start, align_end, end_cross, self, pushing_shape)
+    
+    def get_connected_rooms(self):
+        res = { room_id : set() for room_id in range(len(self.rooms)) }
+        door_width = 0.75
+        wall_sets = [self.walls_horizontal.walls, self.walls_vertical.walls]
+        for wall_set in wall_sets:
+            for aligned_walls in wall_set:
+                for room_id_1 in aligned_walls[1]:
+                    for room_id_2 in aligned_walls[1]:
+                        if room_id_1 == -1 or room_id_2 == -1:
+                            continue
+                        if room_id_1 == room_id_2:
+                            continue
+                        for wall_coords_1 in aligned_walls[1][room_id_1]:
+                            for wall_coords_2 in aligned_walls[1][room_id_2]:
+                                if util.is_wall_overlapping_length(wall_coords_1[0], wall_coords_1[1],
+                                                                   wall_coords_2[0], wall_coords_2[1], door_width):
+                                    res[room_id_1].add(room_id_2)
+                                    res[room_id_2].add(room_id_1)
+        return res
+
+    def get_cost_function(self):
+        sum = 0
+        adjacency_cost = self.get_adjacency_cost()
+        dimension_cost = self.get_dimension_cost()
+        shape_cost = self.get_shape_cost()
+        print("Adjacency: ", adjacency_cost, flush=True)
+        print("Dimension: ", dimension_cost, flush=True)
+        print("Shape: ", shape_cost, flush=True)
+        sum += 10.0 * adjacency_cost
+        sum += 0.1 * dimension_cost
+        sum += 0.1 * shape_cost
+        return sum
+
+    def get_adjacency_cost(self):
+        current_adjacencies = self.get_connected_rooms()
+        print(current_adjacencies, flush=True)
+        print(self.adjacency_dict, flush=True)
+        unmet_conditions = 0
+        for room_id in self.adjacency_dict:
+            for connected_id in self.adjacency_dict[room_id]:
+                if connected_id not in current_adjacencies[room_id]:
+                    unmet_conditions += 1
+        # Since every connection is counted twice, divide by 2
+        return unmet_conditions / 2
+    
+    def get_dimension_cost(self):
+        sum = 0
+        for room in self.rooms:
+            actual_area = room.shape.get_area()
+            actual_aspect = room.shape.get_aspect()
+            sum += abs(actual_area - room.room_pref.pref_size) + \
+                abs(actual_aspect - room.room_pref.pref_aspect)
+        return sum
+
+    def get_shape_cost(self):
+        sum = 0
+        for room in self.rooms:
+            area = room.shape.get_area()
+            sum += len(room.shape.points) + (room.shape.get_aabb_area() - area) / area
+        return sum
 
 
 class BuildingRoom:
-    def __init__(self, room, shape, room_id):
-        self.room = room
+    def __init__(self, room_pref, shape, room_id):
+        self.room_pref = room_pref
         self.shape = shape
         self.room_id = room_id
     
     def serialize(self):
-        return {"name": self.room.name, "shape": self.shape.serialize()}
+        return {"name": self.room_pref.name, "shape": self.shape.serialize()}
 
 
 class BuildingShape:
@@ -97,29 +191,35 @@ class BuildingShape:
         start_cross = self.points[start_index][cross_coord_index]
         align_coord_1 = self.points[start_index][align_coord_index]
         align_coord_2 = self.points[next_index][align_coord_index]
+        align_start = min(align_coord_1, align_coord_2)
+        align_end = max(align_coord_1, align_coord_2)
         scanned_walls = wall_set.scan_walls(min(start_cross, start_cross + distance), 
-                                            max(start_cross, start_cross + distance), 
-                                            min(align_coord_1, align_coord_2), max(align_coord_1, align_coord_2))
+                                                  max(start_cross, start_cross + distance),
+                                                  align_start, align_end)
                                         
         # If two walls from the same room overlap on the align axis, that room section would disappear
         # making such a push illegal
         for room_id in scanned_walls:
+            # This is the boundary
+            if room_id == -1:
+                return False
             if len(scanned_walls[room_id]) < 2:
                 continue
             for i in range(len(scanned_walls[room_id])):
                 for j in range(len(scanned_walls[room_id])):
                     if i == j:
                         continue
-                    if util.is_wall_overlapping(scanned_walls[room_id][i][0], scanned_walls[room_id][i][1],
-                                                scanned_walls[room_id][j][0], scanned_walls[room_id][j][1]):
+                    if util.is_wall_overlapping(scanned_walls[room_id][i][1][0], scanned_walls[room_id][i][1][1],
+                                                scanned_walls[room_id][j][1][0], scanned_walls[room_id][j][1][1]):
                         return False
+
         return True
     
     def snap_wall(self, start_index, snap_index, building):
         is_horizontal = self.is_wall_horizontal(start_index)
         coord_index = 1 if is_horizontal else 0
         distance = self.points[snap_index][coord_index] - self.points[start_index][coord_index] 
-        self.push_wall(start_index, distance, building)
+        return self.push_wall(start_index, distance, building)
     
     def snap_wall_random(self, start_index, building):
         snap_index = None
@@ -127,18 +227,25 @@ class BuildingShape:
             snap_index = (start_index - 1) % len(self.points)
         else:
             snap_index = (start_index + 2) % len(self.points)
-        self.snap_wall(start_index, snap_index, building)
+        return self.snap_wall(start_index, snap_index, building)
 
-    def push_wall(self, start_index, distance, building):
-        if not self.can_push_wall(start_index, distance, building):
+    def push_wall(self, start_index, distance, building, is_original=True):
+        if is_original and not self.can_push_wall(start_index, distance, building):
             return False
+
+        if is_original:
+            #print("Vert walls: " + building.walls_vertical.walls)
+            building.push_hit_walls(self, start_index, distance)
         
+        next_index = (start_index + 1) % len(self.points)
+        print("Push wall for: ", self.is_wall_horizontal(start_index), self.room_id, self.points[start_index], self.points[next_index], distance, flush=True)
+        #print("Points before: ", self.points, flush=True)
+
         # Remove from wall set, 3 walls are affected
         self.remove_from_wall_set(start_index - 1, building)
         self.remove_from_wall_set(start_index, building)
         self.remove_from_wall_set(start_index + 1, building)
 
-        next_index = (start_index + 1) % len(self.points)
         is_horizontal = self.is_wall_horizontal(start_index)
         if is_horizontal:
             self.points[start_index][1] += distance
@@ -153,6 +260,60 @@ class BuildingShape:
         self.add_to_wall_set(start_index + 1, building)
 
         self.merge_unnecessary_walls(building)
+
+        #print("Points after: ", self.points, flush=True)
+
+    def push_wall_at(self, is_horizontal, wall_start, wall_end, wall_cross, align_start, align_end, end_cross, building, pushing_shape):
+        # wall_start and wall_end are the current coordinates of the wall to be pushed
+        # align_start and align_end is the section which is pushing this wall
+        # end_cross is the end destination of the wall along the cross-axis
+
+        # First, find which wall it is
+        start_index = None
+        is_reverse_order = False
+        for i in range(len(self.points)):
+            wall_is_horizontal = self.is_wall_horizontal(i)
+            if wall_is_horizontal != is_horizontal:
+                continue 
+            j = (i + 1) % len(self.points)
+            align_coord_index = 0 if is_horizontal else 1
+            cross_coord_index = 1 - align_coord_index
+            wall_coord_1 = self.points[i][align_coord_index]
+            wall_coord_2 = self.points[j][align_coord_index]
+            cross_coord = self.points[i][cross_coord_index]
+            is_reverse_order = wall_start != self.points[i][align_coord_index]
+            if (min(wall_coord_1, wall_coord_2) == wall_start and 
+                max(wall_coord_1, wall_coord_2) == wall_end and cross_coord == wall_cross):
+                start_index = i
+                break
+        if start_index is None:
+            print("Couldn't find wall!", flush=True)
+            """
+            print("I am: ", self.room_id, self.points, flush=True)
+            print("Pushed by: ", pushing_shape.room_id, pushing_shape.points, flush=True)
+            print("Sought wall: ", is_horizontal, wall_start, wall_end, wall_cross, align_start, align_end, end_cross, flush=True)
+            print("Whole building: ", building.serialize(), flush=True)
+            """
+
+        # Perform split if necessary
+        split_points = []
+        push_index = start_index
+        if wall_start < align_start:
+            split_points.append(align_start)
+        if wall_end > align_end:
+            split_points.append(align_end)
+        if len(split_points) == 1:
+            self.split_wall(start_index, split_points[0], building)
+            # xor operation to determine push index
+            if is_reverse_order != (wall_start < align_start):
+                push_index = (start_index + 2) % len(self.points)
+        if len(split_points) == 2:
+            self.split_wall_double(start_index, split_points[0], split_points[1], building)
+            push_index = (start_index + 2) % len(self.points)
+        
+        # Push the wall
+        self.push_wall(push_index, end_cross - wall_cross, building, False)
+
     
     def get_wall_info(self, start_index):
         next_index = (start_index + 1) % len(self.points)
@@ -171,11 +332,13 @@ class BuildingShape:
     def add_to_wall_set(self, index, building):
         index_mod = index % len(self.points)
         pos, start, end, room_id = self.get_wall_info(index_mod)
+        print("Add wall: ", self.room_id, self.is_wall_horizontal(index_mod), start, end, pos, flush=True)
         building.get_wall_set(self.is_wall_horizontal(index_mod)).add_wall(pos, start, end, room_id)
 
     def remove_from_wall_set(self, index, building):
         index_mod = index % len(self.points)
         pos, start, end, room_id = self.get_wall_info(index_mod)
+        print("Remove wall: ", self.room_id, self.is_wall_horizontal(index_mod), start, end, pos, flush=True)
         building.get_wall_set(self.is_wall_horizontal(index_mod)).remove_wall(pos, start, end, room_id)
 
     def merge_walls(self, index_1, index_2, building):
@@ -193,11 +356,15 @@ class BuildingShape:
 
     def merge_unnecessary_walls(self, building):
         num_points = len(self.points)
+        print("Merge walls!", flush=True)
+        print("Points before: ", self.points)
         for i in range(num_points):
             while (i < len(self.points) and self.should_merge_walls(i, (i + 1) % len(self.points))):
                 self.merge_walls(i, (i + 1) % len(self.points), building)
             if i >= len(self.points):
                 break
+        print("Finish merge walls!", flush=True)
+        print("Points after: ", self.points)
     
     def split_wall(self, start_index, coord, building):
         is_horizontal = self.is_wall_horizontal(start_index)
@@ -262,7 +429,7 @@ class BuildingShape:
         can_split_double = min_pos < max_pos
         if not can_split_double:
             return False
-        split_double = False
+        split_double = True
         if split_double:
             split_coord_1 = util.get_random_grid(min_pos, max_pos, grid_size)
             split_coord_2 = split_coord_1
@@ -278,6 +445,8 @@ class BuildingShape:
     def random_transform_wall(self, max_shift_distance, split_prob, push_prob, snap_prob, building):
         wall_index = random.randrange(len(self.points))
         grid_size = building.grid_size
+        split_wall = False
+        pushed = False
         if random.uniform(0.0, 1.0) < split_prob:
             # Split the wall
             split = self.split_wall_random(wall_index, grid_size, building)
@@ -285,15 +454,18 @@ class BuildingShape:
                 wall_index = wall_index + 2
             if split == 2:
                 wall_index = wall_index + 2
+            split_wall = True
         if random.uniform(0.0, 1.0) < push_prob:
             # Push the wall
             is_push = random.uniform(0, 1) < 0.5
             shift_distance = (util.get_random_grid(-max_shift_distance, -grid_size, grid_size) if is_push 
                             else util.get_random_grid(grid_size, max_shift_distance, grid_size))
-            self.push_wall(wall_index, shift_distance, building)
+            pushed = self.push_wall(wall_index, shift_distance, building)
         if random.uniform(0.0, 1.0) < snap_prob:
             # Snap the wall
-            self.snap_wall_random(wall_index, building)
+            pushed = pushed or self.snap_wall_random(wall_index, building)
+        if split_wall and not pushed:
+            self.merge_unnecessary_walls(building)
     
     def get_center(self):
         area = self.get_area()
@@ -306,4 +478,4 @@ class BuildingShape:
         return (sum_x / (6 * area), sum_y / (6 * area))
 
     def serialize(self):
-        return {"points": self.points, "center": self.get_center() }
+        return {"points": copy.deepcopy(self.points), "center": self.get_center() }

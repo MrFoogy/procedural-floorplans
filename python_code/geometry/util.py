@@ -20,4 +20,7 @@ def gridify_nearest(val, grid_size):
     return round(val / grid_size) * grid_size
 
 def is_wall_overlapping(start_1, end_1, start_2, end_2):
-    return not (end_1 <= start_2 or end_2 <= start_1)
+    return is_wall_overlapping_length(start_1, end_1, start_2, end_2, 0.0)
+
+def is_wall_overlapping_length(start_1, end_1, start_2, end_2, required_length):
+    return min(end_1 - start_2, end_2 - start_1) > required_length
