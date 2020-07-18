@@ -24,3 +24,6 @@ def is_wall_overlapping(start_1, end_1, start_2, end_2):
 
 def is_wall_overlapping_length(start_1, end_1, start_2, end_2, required_length):
     return min(end_1 - start_2, end_2 - start_1) > required_length
+
+def is_wall_touching(start_1, end_1, start_2, end_2):
+    return min(end_1 - start_2, end_2 - start_1) >= 0
